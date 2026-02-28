@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Inventory Management System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<style>
+  /* Dark Mode Header */
+  body.dark-mode header {
+    background: #1a252f;
+    border-bottom: 1px solid #2c3e50;
+  }
+  body.dark-mode header h1 {
+    color: #ecf0f1;
+  }
+</style>
+<body>
+  <!-- Main App Sidebar -->
+  <nav id="app-sidebar">
+    <div class="sidebar-brand">
+      <img src="Logo.jpg" alt="Logo" class="sidebar-logo" style="height:32px;width:auto;margin-right:8px">
+      <span class="brand-text">IMS</span>
+      <button id="main-sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <button onclick="window.location.href='homepage.html'" data-tooltip="Homepage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span class="menu-text">Homepage</span>
+        </button>
+      </li>
+      <li>
+        <button onclick="window.location.href='daily_cycle_count.html'" data-tooltip="Daily Cycle Count">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="menu-text">Daily Cycle Count</span>
+        </button>
+        <ul class="sidebar-submenu">
+            <li><button id="sidebar-timestamp-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:10px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Timestamp
+            </button></li>
+            
+        </ul>
+      </li>
+      <li>
+        <button onclick="window.location.href='all_ic_attendance.html'" data-tooltip="All IC Attendance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span class="menu-text">All IC Attendance</span>
+        </button>
+        <ul class="sidebar-submenu">
+            
+            <li><button onclick="sessionStorage.setItem('ims_open_validators_modal', 'true'); window.location.href='all_ic_attendance.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:10px;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                Validators View
+            </button></li>
+        </ul>
+      </li>
+      <li>
+        <button onclick="window.location.href='dashboard_analytics.html'" data-tooltip="Analytics & Reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span class="menu-text">Analytics & Reports</span>
+        </button>
+      </li>
+      <li><button class="active" data-tooltip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span class="menu-text">Settings</span>
+      </button>
+      </li>
+      
+    </ul>
+  </nav>
+  <header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <button onclick="window.location.href='homepage.html'" class="icon-btn" title="Back to Dashboard" style="border:none; background:transparent; font-size:16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        <h1>Settings</h1>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="toggleTheme()" class="icon-btn" title="Toggle Theme" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border:none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button onclick="signOut()" class="icon-btn" title="Logout" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border:none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #e74c3c;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Application Settings</h2>
+      <p class="muted">Configure your application preferences.</p>
+      
+      <form id="settings-form" style="max-width: 400px; margin-top: 20px;">
+        <div style="margin-bottom: 15px;">
+          <label style="display:block; margin-bottom: 5px; font-weight: bold;">Theme</label>
+          <select id="theme-select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="pastel-teal">Pastel Teal</option>
+            <option value="cream">Cream</option>
+            <option value="navy-blue">Navy Blue</option>
+            <option value="system">System Default</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <label style="display:block; margin-bottom: 5px; font-weight: bold;">Notifications</label>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="notif-email" checked>
+            <label for="notif-email" style="margin:0;">Email Notifications</label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+            <input type="checkbox" id="notif-push" checked>
+            <label for="notif-push" style="margin:0;">Push Notifications</label>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display:block; margin-bottom: 5px; font-weight: bold;">Data Refresh Rate</label>
+          <select style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="15">Every 15 seconds</option>
+            <option value="30">Every 30 seconds</option>
+            <option value="60">Every minute</option>
+            <option value="manual">Manual only</option>
+          </select>
+        </div>
+
+        <div class="tracker-container" style="margin-top: 20px;">
+                <h3>Storage Status</h3>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: var(--text-color);">
+                        <span id="storageUsageText">Usage: 0 KB / 5 MB</span>
+                        <span id="storagePercentText">0%</span>
+                    </div>
+                    <div style="width: 100%; background-color: #eee; height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div id="storageProgressBar" style="height: 100%; width: 0%; background-color: var(--primary-color); transition: width 0.3s;"></div>
+                    </div>
+                    <p id="storageRowsText" style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Estimated capacity: Calculating...</p>
+                </div>
+            </div>
+
+
+
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    // Ensure sidebar toggle works by re-initializing if needed or relying on app.js
+    // app.js handles sidebar toggle on DOMContentLoaded
+    // app.js handles clock update
+    // app.js handles user auth display
+
+    // Check admin role for Clear Logs button
+    const STORAGE_KEY_LOGS = 'ims_system_logs_v1';
+    const role = sessionStorage.getItem('dms_auth_role_v1');
+    const clearBtn = document.getElementById('clear-logs-btn');
+
+    function renderLogs(){
+      const tbody = document.querySelector('#system-logs-table tbody');
+      if(!tbody) return;
+      let logs = [];
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY_LOGS);
+        if(stored) logs = JSON.parse(stored);
+        else {
+          // Default demo logs
+          logs = [
+             { timestamp: '2023-10-27 10:30', user: 'admin', action: 'Login', details: 'Successful login' },
+             { timestamp: '2023-10-27 10:35', user: 'admin', action: 'Update Doc', details: 'Updated ECOM-2023-001 status to Approved' },
+             { timestamp: '2023-10-27 11:00', user: 'user1', action: 'Create Doc', details: 'Created new document ECOM-2023-005' }
+          ];
+          localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+        }
+      } catch(e){ logs = []; }
+      
+      tbody.innerHTML = '';
+      if(logs.length === 0){
+        tbody.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center; padding:20px;">Logs cleared.</td></tr>';
+        return;
+      }
+      logs.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #eee;">${l.timestamp}</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${l.user}</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${l.action}</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${l.details}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    renderLogs();
+
+    if(role === 'admin' && clearBtn){
+      clearBtn.style.display = 'block';
+      clearBtn.addEventListener('click', () => {
+        if(confirm('Are you sure you want to clear all system logs?')){
+          localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify([]));
+          renderLogs();
+        }
+      });
+    }
+
+    // Settings Form Logic
+    const settingsForm = document.getElementById('settings-form');
+    const themeSelect = document.getElementById('theme-select');
+    
+    if(themeSelect){
+      themeSelect.value = localStorage.getItem('ims_theme') || 'light';
+    }
+
+    if(settingsForm){
+      settingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const theme = themeSelect ? themeSelect.value : 'light';
+        localStorage.setItem('ims_theme', theme);
+        if(window.applyTheme) window.applyTheme();
+        alert('Settings saved!');
+      });
+    }
+
+    function updateStorageInfo() {
+        // Approximate limit for localStorage (5MB is standard safe limit)
+        const MAX_BYTES = 5 * 1024 * 1024; 
+        let totalUsed = 0;
+        
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                totalUsed += (localStorage[key].length + key.length);
+            }
+        }
+
+        const usedKB = (totalUsed / 1024).toFixed(2);
+        const totalMB = (MAX_BYTES / (1024 * 1024)).toFixed(0);
+        const percent = Math.min(100, (totalUsed / MAX_BYTES) * 100).toFixed(1);
+        
+        const usageText = document.getElementById('storageUsageText');
+        const percentText = document.getElementById('storagePercentText');
+        const progressBar = document.getElementById('storageProgressBar');
+
+        if(usageText) usageText.innerText = `Usage: ${usedKB} KB / ${totalMB} MB`;
+        if(percentText) percentText.innerText = `${percent}%`;
+        
+        if(progressBar){
+            progressBar.style.width = `${percent}%`;
+            if (parseFloat(percent) >= 90) {
+                progressBar.style.backgroundColor = '#e74c3c';
+                if(window.addNotification) window.addNotification("⚠️ Storage usage exceeds 90%!", "error");
+            } else {
+                progressBar.style.backgroundColor = 'var(--accent, #2752a7)';
+            }
+        }
+        
+        // Estimate Rows based on Documents
+        let avgSize = 1000; // Default 1KB
+        try {
+            const docsStr = localStorage.getItem('dms_docs_v1');
+            if(docsStr){
+                const docs = JSON.parse(docsStr);
+                if(Array.isArray(docs) && docs.length > 0){
+                    avgSize = docsStr.length / docs.length;
+                }
+            }
+        } catch(e){}
+        
+        const remainingBytes = MAX_BYTES - totalUsed;
+        const estimatedRows = Math.max(0, Math.floor(remainingBytes / avgSize));
+        
+        const rowsText = document.getElementById('storageRowsText');
+        if(rowsText) {
+            rowsText.innerHTML = `Estimated capacity: ~${estimatedRows.toLocaleString()} more documents based on current data size`;
+            
+            if (parseFloat(percent) >= 90) {
+                rowsText.innerHTML += '<br><strong style="color: #e74c3c;">⚠️ Critical Storage Level: Please backup and clear old data.</strong>';
+            }
+        }
+    }
+    
+    // Initialize storage info
+    updateStorageInfo();
+
+  </script>
+</body>
+</html>
