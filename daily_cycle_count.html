@@ -3133,6 +3133,11 @@
              const activeTarget = rate > 0 ? (act * rate) : ((counterEntry && counterEntry.targetOutput) || 0);
              const defaultHourlyTarget = activeTarget > 0 ? Math.round(activeTarget / 8) : 0;
              
+             const pickTargetTotal = (counterEntry && counterEntry.pickTarget) || 0;
+             const resTargetTotal = (counterEntry && counterEntry.resTarget) || 0;
+             const defaultHourlyPickTarget = pickTargetTotal > 0 ? Math.round(pickTargetTotal / 8) : 0;
+             const defaultHourlyReservedTarget = resTargetTotal > 0 ? Math.round(resTargetTotal / 8) : 0;
+
              const savedActuals = counterEntry && counterEntry.hourlyActuals ? counterEntry.hourlyActuals : null;
              const savedPickBin = counterEntry && counterEntry.hourlyPickBin ? counterEntry.hourlyPickBin : {};
              const savedReserved = counterEntry && counterEntry.hourlyReserved ? counterEntry.hourlyReserved : {};
@@ -3202,8 +3207,8 @@
                  }
                  
                  hourlyPalletTargets[label] = savedPalletTgt || 0;
-                 hourlyPickTargets[label] = savedPickTgt || 0;
-                 hourlyReservedTargets[label] = savedReservedTgt || 0;
+                 hourlyPickTargets[label] = savedPickTgt !== undefined ? savedPickTgt : defaultHourlyPickTarget;
+                 hourlyReservedTargets[label] = savedReservedTgt !== undefined ? savedReservedTgt : defaultHourlyReservedTarget;
              }
  
              // Only calculate from cycleCounts if no manual actuals are saved
