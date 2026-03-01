@@ -961,6 +961,21 @@
                 <tbody id="ts-status-modal-tbody"></tbody>
             </table>
         </div>
+        <div id="ts-status-modal-pagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid #eee;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <label style="font-size:12px;">Rows:</label>
+                <select id="ts-status-modal-rows" style="padding:2px; font-size:12px;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <span id="ts-status-modal-page-info" style="font-size:12px; color:#666;"></span>
+            <div style="display:flex; gap:5px;">
+                <button id="ts-status-modal-prev" class="icon-btn" style="padding:2px 6px;">&lt;</button>
+                <button id="ts-status-modal-next" class="icon-btn" style="padding:2px 6px;">&gt;</button>
+            </div>
+        </div>
         <div style="text-align:right; margin-top:10px;"><button class="icon-btn close-modal" style="border: 1px solid #ccc; padding: 8px 16px;">Close</button></div>
     </div>
   </div>
@@ -6097,6 +6112,8 @@
 
         let currentTsStatusList = [];
         let currentTsStatusType = '';
+        let tsStatusModalPage = 1;
+        let tsStatusModalRows = 10;
 
         window.showTsStatusModal = function(type) {
             currentTsStatusType = type;
@@ -6173,6 +6190,7 @@
             // Reset search
             const searchInput = document.getElementById('ts-status-modal-search');
             if(searchInput) searchInput.value = '';
+            tsStatusModalPage = 1;
 
             renderTsStatusModalTable();
             modal.classList.remove('hidden');
@@ -6196,13 +6214,30 @@
                 return Object.values(item).some(val => String(val).toLowerCase().includes(term));
             });
 
+            // Pagination
+            const totalItems = filtered.length;
+            const totalPages = Math.ceil(totalItems / tsStatusModalRows) || 1;
+            if (tsStatusModalPage > totalPages) tsStatusModalPage = totalPages;
+            if (tsStatusModalPage < 1) tsStatusModalPage = 1;
+            
+            const start = (tsStatusModalPage - 1) * tsStatusModalRows;
+            const paginated = filtered.slice(start, start + tsStatusModalRows);
+            
+            const pageInfo = document.getElementById('ts-status-modal-page-info');
+            const prevBtn = document.getElementById('ts-status-modal-prev');
+            const nextBtn = document.getElementById('ts-status-modal-next');
+            
+            if(pageInfo) pageInfo.textContent = `Page ${tsStatusModalPage} of ${totalPages} (${totalItems})`;
+            if(prevBtn) prevBtn.disabled = tsStatusModalPage <= 1;
+            if(nextBtn) nextBtn.disabled = tsStatusModalPage >= totalPages;
+
             tbody.innerHTML = '';
-            if (filtered.length === 0) {
+            if (paginated.length === 0) {
                  tbody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center; padding:10px; color:#999;">No records found.</td></tr>`;
                  return;
             }
 
-            filtered.forEach(item => {
+            paginated.forEach(item => {
                 const tr = document.createElement('tr');
                 let rowHtml = '';
                 if (currentTsStatusType === 'inactive') {
@@ -6244,6 +6279,23 @@
                 tbody.appendChild(tr);
             });
         }
+
+        // Timestamp Status Modal Pagination Listeners
+        const tsStatusModalPrev = document.getElementById('ts-status-modal-prev');
+        const tsStatusModalNext = document.getElementById('ts-status-modal-next');
+        const tsStatusModalRowsSel = document.getElementById('ts-status-modal-rows');
+
+        if(tsStatusModalPrev) tsStatusModalPrev.addEventListener('click', () => {
+            if(tsStatusModalPage > 1) { tsStatusModalPage--; renderTsStatusModalTable(); }
+        });
+        if(tsStatusModalNext) tsStatusModalNext.addEventListener('click', () => {
+            tsStatusModalPage++; renderTsStatusModalTable();
+        });
+        if(tsStatusModalRowsSel) tsStatusModalRowsSel.addEventListener('change', () => {
+            tsStatusModalRows = parseInt(tsStatusModalRowsSel.value);
+            tsStatusModalPage = 1;
+            renderTsStatusModalTable();
+        });
 
         window.filterTsByArea = function(area) {
             tsFilterArea = area;
@@ -8686,7 +8738,10 @@
 
         const tsStatusModalSearch = document.getElementById('ts-status-modal-search');
         if(tsStatusModalSearch) {
-            tsStatusModalSearch.addEventListener('input', renderTsStatusModalTable);
+            tsStatusModalSearch.addEventListener('input', () => {
+                tsStatusModalPage = 1;
+                renderTsStatusModalTable();
+            });
         }
     });
   </script>
