@@ -565,19 +565,24 @@
                   <option value="3rd Shift-(10pm-6am)">3rd Shift-(10pm-6am)</option>
               </select>
           </div>
-          <div>
-              <label for="counter-required">Required Counters</label>
-              <input type="number" id="counter-required" required min="1" style="width:100%">
+          
+          <!-- Pick Bin Group -->
+          <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; grid-column: span 2; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px;">
+              <div style="grid-column: span 3; font-weight:bold; color:#1565c0; font-size:12px;">Pick Bin</div>
+              <div><label style="font-size:10px;">Req</label><input type="number" id="counter-pick-required" min="0" style="width:100%" placeholder="Req"></div>
+              <div><label style="font-size:10px;">Rate</label><input type="number" id="counter-pick-rate" min="0" style="width:100%" placeholder="Rate"></div>
+              <div><label style="font-size:10px;">Target</label><input type="number" id="counter-pick-target" min="0" style="width:100%" placeholder="Tgt"></div>
           </div>
-          <div>
-              <label for="counter-rate">Standard Rate</label>
-              <input type="number" id="counter-rate" min="1" placeholder="Per Person" style="width:100%" title="Items per person. Used to calculate Target Output (Required * Rate).">
+
+          <!-- Reserved Bin Group -->
+          <div style="background: #fff3e0; padding: 8px; border-radius: 4px; grid-column: span 2; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px;">
+              <div style="grid-column: span 3; font-weight:bold; color:#ef6c00; font-size:12px;">Reserved Bin</div>
+              <div><label style="font-size:10px;">Req</label><input type="number" id="counter-res-required" min="0" style="width:100%" placeholder="Req"></div>
+              <div><label style="font-size:10px;">Rate</label><input type="number" id="counter-res-rate" min="0" style="width:100%" placeholder="Rate"></div>
+              <div><label style="font-size:10px;">Target</label><input type="number" id="counter-res-target" min="0" style="width:100%" placeholder="Tgt"></div>
           </div>
-          <div>
-              <label for="counter-target">Target Output</label>
-              <input type="number" id="counter-target" min="0" placeholder="Optional" style="width:100%" title="Total items target. Auto-calculated if Rate is set, or enter manually.">
-          </div>
-          <div>
+
+          <div style="grid-column: span 2;">
               <label for="counter-note">Note (Optional)</label>
               <input type="text" id="counter-note" placeholder="Shift notes..." style="width:100%">
           </div>
@@ -874,8 +879,13 @@
             </div>
         </div>
         <div id="hourly-report-content" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-        <div style="position:relative; flex: 1; min-height: 0; width:100%;">
-            <canvas id="hourly-chart"></canvas>
+        <div style="display:flex; flex: 1; min-height: 0; width:100%; gap:10px;">
+            <div style="position:relative; flex: 3; min-height: 0;">
+                <canvas id="hourly-chart"></canvas>
+            </div>
+            <div style="position:relative; flex: 1; min-height: 0; border-left:1px solid #eee; padding-left:10px;">
+                <canvas id="hourly-breakdown-chart"></canvas>
+            </div>
         </div>
         <div id="hourly-details" style="margin-top:10px; flex: 1; overflow-y: auto;">
             <!-- Hourly input fields will be generated here -->
@@ -931,6 +941,27 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download
             </button>
         </div>
+    </div>
+  </div>
+
+  <!-- Timestamp Status List Modal -->
+  <div id="ts-status-modal" class="modal hidden" style="z-index: 10050;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card" style="max-width: 600px; margin: 50px auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0" id="ts-status-modal-title">List</h3>
+            <button class="icon-btn close-modal">&times;</button>
+        </div>
+        <div style="margin-bottom:10px;">
+            <input type="text" id="ts-status-modal-search" placeholder="Search..." style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="report-table" style="width:100%;">
+                <thead><tr id="ts-status-modal-header"></tr></thead>
+                <tbody id="ts-status-modal-tbody"></tbody>
+            </table>
+        </div>
+        <div style="text-align:right; margin-top:10px;"><button class="icon-btn close-modal" style="border: 1px solid #ccc; padding: 8px 16px;">Close</button></div>
     </div>
   </div>
 
@@ -1086,7 +1117,7 @@
         </div>
         
         <div class="dashboard-stats-grid" style="margin-bottom:15px;">
-            <div class="stat-card tint-green" onclick="resetTsFilters(); activateTsTab('tab-active'); renderTimestamps();" style="padding:15px; border-left: 4px solid #2ecc71;">
+            <div class="stat-card tint-green" onclick="showTsStatusModal('active')" style="padding:15px; border-left: 4px solid #2ecc71;">
                 <div style="margin-bottom:4px; color:#2ecc71;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
                 <div class="stat-value" id="card-active-sessions" style="font-size:24px;">0</div>
                 <div class="stat-label" style="font-size:12px;">Active Session</div>
@@ -1094,22 +1125,22 @@
                     <canvas id="active-sessions-chart"></canvas>
                 </div>
             </div>
-            <div class="stat-card tint-red" onclick="resetTsFilters(); activateTsTab('tab-active'); document.getElementById('ts-show-long-active').checked = true; renderTimestamps();" style="padding:15px; border-left: 4px solid #e74c3c;">
+            <div class="stat-card tint-red" onclick="showTsStatusModal('long_active')" style="padding:15px; border-left: 4px solid #e74c3c;">
                 <div style="margin-bottom:4px; color:#e74c3c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                 <div class="stat-value" id="card-long-sessions" style="font-size:24px;">0</div>
                 <div class="stat-label" style="font-size:12px;">Active > 1hr</div>
             </div>
-            <div class="stat-card tint-purple" onclick="resetTsFilters(); activateTsTab('tab-inactive');" style="padding:15px; border-left: 4px solid #8e24aa;">
+            <div class="stat-card tint-purple" onclick="showTsStatusModal('inactive')" style="padding:15px; border-left: 4px solid #8e24aa;">
                 <div style="margin-bottom:4px; color:#8e24aa;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg></div>
                 <div class="stat-value" id="card-inactive-users" style="font-size:24px;">0</div>
                 <div class="stat-label" style="font-size:12px;">Inactive User</div>
             </div>
-            <div class="stat-card tint-orange" onclick="resetTsFilters(); activateTsTab('tab-active-breaks'); renderTimestamps();" style="padding:15px; border-left: 4px solid #f57c00;">
+            <div class="stat-card tint-orange" onclick="showTsStatusModal('break')" style="padding:15px; border-left: 4px solid #f57c00;">
                 <div style="margin-bottom:4px; color:#f57c00;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg></div>
                 <div class="stat-value" id="card-active-breaks" style="font-size:24px;">0</div>
                 <div class="stat-label" style="font-size:12px;">Active Breaks</div>
             </div>
-            <div class="stat-card tint-yellow" onclick="resetTsFilters(); tsBreakFilterLong = true; activateTsTab('tab-active-breaks'); renderTimestamps();" style="padding:15px; border-left: 4px solid #ffb300;">
+            <div class="stat-card tint-yellow" onclick="showTsStatusModal('long_break')" style="padding:15px; border-left: 4px solid #ffb300;">
                 <div style="margin-bottom:4px; color:#ffb300;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
                 <div class="stat-value" id="card-long-breaks" style="font-size:24px;">0</div>
                 <div class="stat-label" style="font-size:12px;">Breaks > 40m</div>
@@ -1339,7 +1370,7 @@
                         <div style="display:flex; align-items:center;"><span style="width:8px; height:8px; background:rgba(246, 194, 62, 0.8); display:inline-block; margin-right:3px;"></span> 2nd Shift</div>
                         <div style="display:flex; align-items:center;"><span style="width:8px; height:8px; background:rgba(78, 115, 223, 0.8); display:inline-block; margin-right:3px;"></span> 3rd Shift</div>
                     </div>
-                    <div style="flex:1; position:relative; width:100%; min-height:240px; border:1px solid #ddd; border-radius:4px; padding:5px; background:#fff; overflow:hidden;">
+                    <div id="ts-hourly-chart-container" style="flex:1; position:relative; width:100%; min-height:240px; border:1px solid #ddd; border-radius:4px; padding:5px; background:#fff; overflow:hidden;">
                         <canvas id="ts-hourly-chart" style="max-width:100%; max-height:100%;"></canvas>
                     </div>
                 </div>
@@ -1614,9 +1645,6 @@
         const archiveBtn = document.getElementById('archive-btn');
         const exportCountersBtn = document.getElementById('export-counters-btn');
         const dateInput = document.getElementById('counter-date');
-        const rateInput = document.getElementById('counter-rate');
-        const reqInput = document.getElementById('counter-required');
-        const targetInput = document.getElementById('counter-target');
         const noteInput = document.getElementById('counter-note');
         
         const attendanceTableBody = document.querySelector('#attendance-table tbody');
@@ -2394,6 +2422,7 @@
         const confirmSupervisorDeleteBtn = document.getElementById('confirm-supervisor-delete-btn');
         let supervisorDeleteCallback = null;
         let hourlyChart = null;
+        let hourlyBreakdownChart = null;
         let monitorDashboardChart = null;
         let timestampChart = null;
         let tsHourlyChart = null;
@@ -2528,24 +2557,25 @@
         setLocalDate(dateInput);
 
         // Auto-calc logic (Bidirectional)
-        let lastEditedField = 'req'; // default
+        let lastEditedField = {}; // track per group
 
-        if (reqInput) reqInput.addEventListener('focus', () => lastEditedField = 'req');
-        if (targetInput) targetInput.addEventListener('focus', () => lastEditedField = 'target');
-
-        function performAutoCalc(source) {
+        function performAutoCalc(group, source) {
+            const reqInput = document.getElementById(`counter-${group}-required`);
+            const rateInput = document.getElementById(`counter-${group}-rate`);
+            const targetInput = document.getElementById(`counter-${group}-target`);
+            
             const req = parseInt(reqInput.value) || 0;
             const rate = parseInt(rateInput.value) || 0;
             const target = parseInt(targetInput.value) || 0;
 
             if (source === 'req') {
                 if (req > 0 && rate > 0) targetInput.value = req * rate;
-                lastEditedField = 'req';
+                lastEditedField[group] = 'req';
             } else if (source === 'target') {
                 if (target > 0 && rate > 0) reqInput.value = Math.ceil(target / rate);
-                lastEditedField = 'target';
+                lastEditedField[group] = 'target';
             } else if (source === 'rate') {
-                if (lastEditedField === 'target') {
+                if (lastEditedField[group] === 'target') {
                     if (target > 0 && rate > 0) reqInput.value = Math.ceil(target / rate);
                 } else {
                     if (req > 0 && rate > 0) targetInput.value = req * rate;
@@ -2553,9 +2583,23 @@
             }
         }
 
-        if(reqInput) reqInput.addEventListener('input', () => performAutoCalc('req'));
-        if(targetInput) targetInput.addEventListener('input', () => performAutoCalc('target'));
-        if(rateInput) rateInput.addEventListener('input', () => performAutoCalc('rate'));
+        ['pick', 'res'].forEach(group => {
+            const req = document.getElementById(`counter-${group}-required`);
+            const rate = document.getElementById(`counter-${group}-rate`);
+            const tgt = document.getElementById(`counter-${group}-target`);
+            
+            if(req) {
+                req.addEventListener('focus', () => lastEditedField[group] = 'req');
+                req.addEventListener('input', () => performAutoCalc(group, 'req'));
+            }
+            if(tgt) {
+                tgt.addEventListener('focus', () => lastEditedField[group] = 'target');
+                tgt.addEventListener('input', () => performAutoCalc(group, 'target'));
+            }
+            if(rate) {
+                rate.addEventListener('input', () => performAutoCalc(group, 'rate'));
+            }
+        });
 
         // Global functions for hover popup
         window.showSummaryPopup = function(el) {
@@ -2700,7 +2744,11 @@
                 shifts.forEach(shift => {
                     const item = grouped[date][shift];
                     if (item) {
-                        const req = Number(item.required) || 1;
+                        // Calculate total required from split or legacy
+                        const pickReq = Number(item.pickRequired) || 0;
+                        const resReq = Number(item.resRequired) || 0;
+                        const req = (pickReq + resReq) || Number(item.required) || 1;
+
                         // Automatically count only "Cycle Counter" attendance for daily counters
                         // let shiftAtt = attendance.filter(a => a.date === date && a.shift === shift && a.area === 'Cycle Counter');
                         // Automatically count all attendance for daily counters
@@ -2711,10 +2759,19 @@
                         
                         const act = shiftAtt.length;
                         const pct = Math.round((act / req) * 100);
+
+                        // Calculate split actuals
+                        let pickAct = 0;
+                        let resAct = 0;
+                        shiftAtt.forEach(a => {
+                            if (a.area === 'Pick Bin') pickAct++;
+                            else resAct++; // Assume others are Reserved
+                        });
                         
                         // Calculate dynamic target based on active counters if rate exists
-                        const rate = item.standardRate || 0;
-                        const activeTarget = rate > 0 ? (act * rate) : (item.targetOutput || 0);
+                        const pickTgtCalc = (item.pickRate > 0 ? (pickAct * item.pickRate) : (item.pickTarget || 0));
+                        const resTgtCalc = (item.resRate > 0 ? (resAct * item.resRate) : (item.resTarget || 0));
+                        const activeTarget = (pickTgtCalc + resTgtCalc) || (item.standardRate > 0 ? (act * item.standardRate) : (item.targetOutput || 0));
                         
                         // Calculate actual output for this shift
                         let actualOutput = 0;
@@ -2755,12 +2812,24 @@
                         if(pct >= 100) pctClass = 'completion-high';
                         else if(pct >= 80) pctClass = 'completion-med';
                         
+                        let pickHtml = '';
+                        if (pickReq > 0 || pickAct > 0) {
+                            pickHtml = `<div style="font-size:11px; color:#1565c0; margin-top:2px;">Pick: <strong>${pickAct}/${pickReq}</strong> (Tgt: ${pickTgtCalc})</div>`;
+                        }
+                        
+                        let resHtml = '';
+                        if (resReq > 0 || resAct > 0) {
+                            resHtml = `<div style="font-size:11px; color:#ef6c00; margin-top:2px;">Res: <strong>${resAct}/${resReq}</strong> (Tgt: ${resTgtCalc})</div>`;
+                        }
+
                         html += `
                         <td style="padding:12px;border-bottom:1px solid #eee; vertical-align:top;">
                             <div class="shift-summary-content" onmouseenter="window.showSummaryPopup(this)" onmouseleave="window.hideSummaryPopup()">
                                 <div style="font-size:13px; margin-bottom:4px;">Req: <strong>${req}</strong> | Act: <strong>${act}</strong> ${shortIndicator} ${varianceHtml}</div>
-                                ${rate > 0 ? `<div style="font-size:12px; color:#2752a7; margin-bottom:4px;">Target (Act): <strong>${activeTarget}</strong> <span class="muted" style="font-size:11px">(@${rate}/p)</span></div>` : ''}
+                                <div style="font-size:12px; color:#2752a7; margin-bottom:4px;">Target (Act): <strong>${activeTarget}</strong></div>
                                 <div class="${pctClass}" style="margin-top:4px; margin-bottom:6px;">${pct}% Completed</div>
+                                ${pickHtml}
+                                ${resHtml}
                                 ${item.note ? `<div style="font-size:11px; color:#555; margin-bottom:4px; font-style:italic; background:#f8f9fa; padding:2px 4px; border-radius:3px;">Note: ${item.note}</div>` : ''}
                                 ${areaStr ? `<div style="font-size:11px; color:#666; margin-bottom:2px;"><strong>Area:</strong> ${areaStr}</div>` : ''}
                                 ${roleStr ? `<div style="font-size:11px; color:#666; margin-bottom:4px;"><strong>Role:</strong> ${roleStr}</div>` : ''}
@@ -3275,6 +3344,30 @@
                  }
              });
              }
+
+             // Render Breakdown Chart
+             const ctxBreakdown = document.getElementById('hourly-breakdown-chart');
+             if (ctxBreakdown && typeof Chart !== 'undefined') {
+                 if (hourlyBreakdownChart) hourlyBreakdownChart.destroy();
+                 hourlyBreakdownChart = new Chart(ctxBreakdown, {
+                     type: 'bar',
+                     data: {
+                         labels: ['Pallet', 'Pick Bin', 'Reserved'],
+                         datasets: [
+                             { label: 'Actual', data: [totalPallet, totalPick, totalReserved], backgroundColor: ['#f6c23e', '#36b9cc', '#e74c3c'] },
+                             { label: 'Target', data: [totalPalletTgt, totalPickTgt, totalReservedTgt], backgroundColor: '#2e7d32' }
+                         ]
+                     },
+                     options: {
+                         responsive: true, maintainAspectRatio: false,
+                         plugins: {
+                             title: { display: true, text: 'Breakdown vs Target', font: { size: 12 } },
+                             legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                         },
+                         scales: { y: { beginAtZero: true } }
+                     }
+                 });
+             }
         }
         window.openHourlyModal = openHourlyModal;
 
@@ -3517,17 +3610,9 @@
                     const act = pick + reserved;
                     
                     // Auto-sum targets if specific targets are modified
-                    if (e.target.classList.contains('hourly-pallet-target-input') || e.target.classList.contains('hourly-pick-target-input') || e.target.classList.contains('hourly-reserved-target-input')) {
-                        const pTgt = parseInt(row.querySelector('.hourly-pallet-target-input').value) || 0;
+                    if (e.target.classList.contains('hourly-pick-target-input') || e.target.classList.contains('hourly-reserved-target-input')) {
                         const piTgt = parseInt(row.querySelector('.hourly-pick-target-input').value) || 0;
                         const rTgt = parseInt(row.querySelector('.hourly-reserved-target-input').value) || 0;
-                        // Only update total target if sum > 0 to avoid overwriting default total with 0s on load if not intended
-                        // Actually, if user edits, we should update.
-                        row.querySelector('.hourly-target-input').value = pTgt + piTgt + rTgt; // Pallet target doesn't contribute to item target usually? 
-                        // Wait, "Target per pallet" usually means target count of pallets. 
-                        // "Target for Pick bin" and "Reserved Bin" are item counts.
-                        // So Total Target (Items) = Pick Tgt + Reserved Tgt. Pallet Tgt is separate.
-                        // Let's assume Total Target is Items.
                         row.querySelector('.hourly-target-input').value = piTgt + rTgt;
                     }
 
@@ -3606,6 +3691,13 @@
                         if (hourlyChart.data.datasets[2]) hourlyChart.data.datasets[2].data = glidePath;
                         if (hourlyChart.data.datasets[3]) hourlyChart.data.datasets[3].data = targets;
                         hourlyChart.update('none');
+                    }
+                    
+                    // Update Breakdown Chart
+                    if (hourlyBreakdownChart) {
+                        hourlyBreakdownChart.data.datasets[0].data = [tPallet, tPick, tReserved];
+                        hourlyBreakdownChart.data.datasets[1].data = [tPalletTgt, tPickTgt, tReservedTgt];
+                        hourlyBreakdownChart.update('none');
                     }
                 }
             });
@@ -4356,12 +4448,20 @@
                     id: editId || Date.now().toString(),
                     date: document.getElementById('counter-date').value,
                     shift: document.getElementById('counter-shift').value,
-                    required: Number(document.getElementById('counter-required').value),
-                    standardRate: Number(document.getElementById('counter-rate').value) || 0,
-                    targetOutput: Number(document.getElementById('counter-target').value) || 0,
+                    pickRequired: Number(document.getElementById('counter-pick-required').value) || 0,
+                    pickRate: Number(document.getElementById('counter-pick-rate').value) || 0,
+                    pickTarget: Number(document.getElementById('counter-pick-target').value) || 0,
+                    resRequired: Number(document.getElementById('counter-res-required').value) || 0,
+                    resRate: Number(document.getElementById('counter-res-rate').value) || 0,
+                    resTarget: Number(document.getElementById('counter-res-target').value) || 0,
                     note: document.getElementById('counter-note').value.trim()
                     // active is now derived
                 };
+                
+                // Calculate totals for backward compatibility
+                newEntry.required = newEntry.pickRequired + newEntry.resRequired;
+                newEntry.targetOutput = newEntry.pickTarget + newEntry.resTarget;
+                newEntry.standardRate = 0; // Use specific rates
 
                 let data = getCountersData();
                 if (editId) {
@@ -4406,9 +4506,12 @@
                         document.getElementById('counter-edit-id').value = item.id;
                         document.getElementById('counter-date').value = item.date;
                         document.getElementById('counter-shift').value = item.shift;
-                        document.getElementById('counter-required').value = item.required;
-                        document.getElementById('counter-rate').value = item.standardRate || '';
-                        document.getElementById('counter-target').value = item.targetOutput || '';
+                        document.getElementById('counter-pick-required').value = item.pickRequired || '';
+                        document.getElementById('counter-pick-rate').value = item.pickRate || '';
+                        document.getElementById('counter-pick-target').value = item.pickTarget || '';
+                        document.getElementById('counter-res-required').value = item.resRequired || '';
+                        document.getElementById('counter-res-rate').value = item.resRate || '';
+                        document.getElementById('counter-res-target').value = item.resTarget || '';
                         document.getElementById('counter-note').value = item.note || '';
                         
                         saveCounterBtn.innerHTML = 'Update';
@@ -4446,7 +4549,12 @@
                 document.getElementById('counter-edit-id').value = '';
                 saveCounterBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save';
                 cancelCounterEditBtn.style.display = 'none';
-                document.getElementById('counter-rate').value = '';
+                document.getElementById('counter-pick-required').value = '';
+                document.getElementById('counter-pick-rate').value = '';
+                document.getElementById('counter-pick-target').value = '';
+                document.getElementById('counter-res-required').value = '';
+                document.getElementById('counter-res-rate').value = '';
+                document.getElementById('counter-res-target').value = '';
                 document.getElementById('counter-note').value = '';
                 setLocalDate(document.getElementById('counter-date'));
             });
@@ -5982,6 +6090,156 @@
             localStorage.setItem(STORAGE_KEY_TIMESTAMPS, JSON.stringify(data));
         }
 
+        let currentTsStatusList = [];
+        let currentTsStatusType = '';
+
+        window.showTsStatusModal = function(type) {
+            currentTsStatusType = type;
+            const data = getTimestamps();
+            const attendance = getAttendanceData();
+            const now = new Date();
+            
+            data.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const sessions = [];
+            const openSessions = {};
+            const userLastAction = {};
+            
+            data.forEach(log => {
+                if (log.deleted) return;
+                userLastAction[log.userId] = log;
+                if (log.action === 'Start') {
+                    openSessions[log.userId] = { userId: log.userId, startLog: log, endLog: null };
+                } else if (log.action === 'End') {
+                    if (openSessions[log.userId]) delete openSessions[log.userId];
+                }
+            });
+            
+            const activeSessions = Object.values(openSessions);
+            const activeUserIds = new Set(activeSessions.map(s => s.userId));
+            const onBreakUsers = [];
+            Object.values(userLastAction).forEach(log => { if (log.action === 'Start Break') onBreakUsers.push(log); });
+            const onBreakUserIds = new Set(onBreakUsers.map(u => u.userId));
+
+            let list = [];
+            let title = '';
+            let headers = ['User ID', 'Name', 'Shift', 'Time', 'Duration'];
+
+            if (type === 'active' || type === 'long_active') {
+                title = type === 'active' ? 'Active Sessions' : 'Active Sessions (> 1hr)';
+                activeSessions.forEach(s => {
+                    const start = new Date(s.startLog.timestamp);
+                    const durationMs = now - start;
+                    const durationMins = Math.floor(durationMs / 60000);
+                    if (type === 'long_active' && durationMins <= 60) return;
+                    const att = attendance.find(a => a.userId === s.userId) || {};
+                    list.push({ userId: s.userId, name: att.name || '-', shift: att.shift || '-', time: start.toLocaleTimeString(), duration: `${durationMins} min` });
+                });
+            } else if (type === 'break' || type === 'long_break') {
+                title = type === 'break' ? 'Active Breaks' : 'Breaks (> 40m)';
+                onBreakUsers.forEach(log => {
+                    const start = new Date(log.timestamp);
+                    const durationMs = now - start;
+                    const durationMins = Math.floor(durationMs / 60000);
+                    if (type === 'long_break' && durationMins <= 40) return;
+                    const att = attendance.find(a => a.userId === log.userId) || {};
+                    list.push({ userId: log.userId, name: att.name || '-', shift: att.shift || '-', time: start.toLocaleTimeString(), duration: `${durationMins} min` });
+                });
+            } else if (type === 'inactive') {
+                title = 'Inactive Users (Full Counters)';
+                headers = ['User ID', 'Name', 'Shift', 'Role', 'Status'];
+                const filterShift = document.getElementById('ts-shift-filter') ? document.getElementById('ts-shift-filter').value : '';
+                const filterDate = document.getElementById('ts-analytics-date-filter') ? document.getElementById('ts-analytics-date-filter').value : new Date().toISOString().split('T')[0];
+                attendance.forEach(a => {
+                    if (a.date === filterDate && a.status && a.status.toLowerCase() === 'full counter') {
+                        if (filterShift && !a.shift.includes(filterShift)) return;
+                        if (a.timeOut) return;
+                        if (!activeUserIds.has(a.userId) && !onBreakUserIds.has(a.userId)) {
+                            list.push({ userId: a.userId, name: a.name, shift: a.shift, role: a.role || '-', status: 'Inactive' });
+                        }
+                    }
+                });
+            }
+
+            currentTsStatusList = list;
+
+            const modal = document.getElementById('ts-status-modal');
+            document.getElementById('ts-status-modal-title').textContent = title;
+            
+            // Reset search
+            const searchInput = document.getElementById('ts-status-modal-search');
+            if(searchInput) searchInput.value = '';
+
+            renderTsStatusModalTable();
+            modal.classList.remove('hidden');
+        };
+
+        function renderTsStatusModalTable() {
+            const searchInput = document.getElementById('ts-status-modal-search');
+            const term = searchInput ? searchInput.value.toLowerCase() : '';
+            const tbody = document.getElementById('ts-status-modal-tbody');
+            const thead = document.getElementById('ts-status-modal-header');
+            
+            let headers = [];
+            if (currentTsStatusType === 'inactive') {
+                 headers = ['User ID', 'Name', 'Shift', 'Role', 'Status', 'Action'];
+            } else {
+                 headers = ['User ID', 'Name', 'Shift', 'Time', 'Duration', 'Action'];
+            }
+            thead.innerHTML = headers.map(h => `<th>${h}</th>`).join('');
+
+            const filtered = currentTsStatusList.filter(item => {
+                return Object.values(item).some(val => String(val).toLowerCase().includes(term));
+            });
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center; padding:10px; color:#999;">No records found.</td></tr>`;
+                 return;
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                let rowHtml = '';
+                if (currentTsStatusType === 'inactive') {
+                    const startBtn = `<button class="icon-btn quick-start-btn" 
+                        onclick="document.getElementById('ts-user-id').value = '${item.userId}'; document.getElementById('ts-user-id').dispatchEvent(new Event('input')); logTimestamp('Start', null, '${item.userId}'); document.getElementById('ts-status-modal').classList.add('hidden');" 
+                        title="Quick Start Count" 
+                        style="color:#2ecc71; padding:2px; opacity:0; transition:opacity 0.2s; margin-right:4px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </button>`;
+                    const breakBtn = `<button class="icon-btn quick-start-btn" 
+                        onclick="document.getElementById('ts-user-id').value = '${item.userId}'; document.getElementById('ts-user-id').dispatchEvent(new Event('input')); logTimestamp('Start Break', null, '${item.userId}'); document.getElementById('ts-status-modal').classList.add('hidden');" 
+                        title="Quick Break" 
+                        style="color:#3498db; padding:2px; opacity:0; transition:opacity 0.2s;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                    </button>`;
+                    
+                    rowHtml = `<td>${item.userId}</td><td>${item.name}</td><td>${item.shift}</td><td>${item.role}</td><td>${item.status}</td><td style="text-align:center;">${startBtn}${breakBtn}</td>`;
+                    
+                    tr.onmouseenter = () => { tr.querySelectorAll('.quick-start-btn').forEach(b => b.style.opacity = '1'); };
+                    tr.onmouseleave = () => { tr.querySelectorAll('.quick-start-btn').forEach(b => b.style.opacity = '0'); };
+                } else {
+                    let actionHtml = '';
+                    if (currentTsStatusType === 'active' || currentTsStatusType === 'long_active') {
+                        actionHtml = `
+                            <button class="icon-btn quick-start-btn" onclick="logTimestamp('Start Break', null, '${item.userId}'); document.getElementById('ts-status-modal').classList.add('hidden');" title="Start Break" style="color:#f39c12; padding:2px; opacity:0; transition:opacity 0.2s; margin-right:4px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                            </button>
+                            <button class="icon-btn quick-start-btn" onclick="logTimestamp('End', null, '${item.userId}'); document.getElementById('ts-status-modal').classList.add('hidden');" title="End Counting" style="color:#e74c3c; padding:2px; opacity:0; transition:opacity 0.2s;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                            </button>`;
+                    } else if (currentTsStatusType === 'break' || currentTsStatusType === 'long_break') {
+                        actionHtml = `<button class="icon-btn quick-start-btn" onclick="logTimestamp('End Break', null, '${item.userId}'); document.getElementById('ts-status-modal').classList.add('hidden');" title="End Break" style="color:#2ecc71; padding:2px; opacity:0; transition:opacity 0.2s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>`;
+                    }
+                    rowHtml = `<td>${item.userId}</td><td>${item.name}</td><td>${item.shift}</td><td>${item.time}</td><td>${item.duration}</td><td style="text-align:center;">${actionHtml}</td>`;
+                    tr.onmouseenter = () => { tr.querySelectorAll('.quick-start-btn').forEach(b => b.style.opacity = '1'); };
+                    tr.onmouseleave = () => { tr.querySelectorAll('.quick-start-btn').forEach(b => b.style.opacity = '0'); };
+                }
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
         window.filterTsByArea = function(area) {
             tsFilterArea = area;
             // Switch to Active Sessions tab
@@ -6934,8 +7192,8 @@
         let tsHourlyChartViewMode = 'hourly'; // 'hourly' or 'cumulative'
 
         function renderTsHourlyChart(date) {
-            const ctx = document.getElementById('ts-hourly-chart');
-            if (!ctx || typeof Chart === 'undefined') return;
+            const container = document.getElementById('ts-hourly-chart-container');
+            if (!container || typeof Chart === 'undefined') return;
             
             const counters = getCountersData();
             const attendance = getAttendanceData();
@@ -6950,9 +7208,11 @@
             }
             
             if (todayCounters.length === 0) {
-                if(ctx.parentElement) {
-                    ctx.parentElement.innerHTML = '<div style="text-align:center; padding:40px; color:#999; font-size:13px;">No data for ' + date + '</div>';
+                if (window.tsHourlyChart) {
+                    window.tsHourlyChart.destroy();
+                    window.tsHourlyChart = null;
                 }
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#999; font-size:13px;">No data for ' + date + '</div>';
                 return;
             }
             
@@ -6960,6 +7220,12 @@
             const hoursOrder = [];
             const backgroundColors = [];
             const borderColors = [];
+            
+            // Ensure canvas exists
+            if (!document.getElementById('ts-hourly-chart')) {
+                container.innerHTML = '<canvas id="ts-hourly-chart" style="max-width:100%; max-height:100%;"></canvas>';
+            }
+            const ctx = document.getElementById('ts-hourly-chart');
             
             // Initialize hours 6am to 6am (24h)
             for (let i = 0; i < 24; i++) {
@@ -7651,10 +7917,19 @@
                         // Initialize objects if missing
                         if (!entry.hourlyActuals) entry.hourlyActuals = {};
                         if (!entry.hourlyPallets) entry.hourlyPallets = {};
+                        if (!entry.hourlyPickBin) entry.hourlyPickBin = {};
+                        if (!entry.hourlyReserved) entry.hourlyReserved = {};
                         
                         // Always add SKUs to Actuals (Items) and Pallets to Pallets
                         entry.hourlyActuals[label] = (entry.hourlyActuals[label] || 0) + skus;
                         entry.hourlyPallets[label] = (entry.hourlyPallets[label] || 0) + pallets;
+                        
+                        // Update specific bin counts based on areaType
+                        if (areaType && areaType.includes('Pick Bin')) {
+                            entry.hourlyPickBin[label] = (entry.hourlyPickBin[label] || 0) + skus;
+                        } else {
+                            entry.hourlyReserved[label] = (entry.hourlyReserved[label] || 0) + skus;
+                        }
                         
                         saveCountersData(counters);
                     }
@@ -8403,6 +8678,11 @@
                 }
             }
         });
+
+        const tsStatusModalSearch = document.getElementById('ts-status-modal-search');
+        if(tsStatusModalSearch) {
+            tsStatusModalSearch.addEventListener('input', renderTsStatusModalTable);
+        }
     });
   </script>
 </body>
