@@ -1544,24 +1544,11 @@
                         </div>
                     </div>
                     <div class="att-tabs" style="margin-bottom:5px; border-bottom:1px solid #eee;">
-                        <button class="att-tab active" onclick="openValAnalyticsTab(event, 'tab-val-top-sku')" style="padding:4px 8px; font-size:11px;">Top SKUs</button>
-                        <button class="att-tab" onclick="openValAnalyticsTab(event, 'tab-val-top-validator')" style="padding:4px 8px; font-size:11px;">Top IC Validators</button>
-                        <button class="att-tab" onclick="openValAnalyticsTab(event, 'tab-val-reason-analysis')" style="padding:4px 8px; font-size:11px;">Reason Analysis</button>
+                        <button class="att-tab active" onclick="openValAnalyticsTab(event, 'tab-val-reason-analysis')" style="padding:4px 8px; font-size:11px;">Reason Analysis</button>
                         <button class="att-tab" onclick="openValAnalyticsTab(event, 'tab-val-trend')" style="padding:4px 8px; font-size:11px;">Trend Analysis</button>
+                        <button class="att-tab" onclick="openValAnalyticsTab(event, 'tab-val-hourly')" style="padding:4px 8px; font-size:11px;">Hourly Output</button>
                     </div>
-                    <div id="tab-val-top-sku" class="val-analytics-tab-content" style="flex:1; overflow:auto; max-height:150px;">
-                        <table class="report-table" style="width:100%; font-size:10px;">
-                            <thead><tr><th style="width:30px;">#</th><th>Most Tasks</th><th>Most Resolved</th><th>Most Unresolved</th></tr></thead>
-                            <tbody id="val-analytics-sku-tbody"></tbody>
-                        </table>
-                    </div>
-                    <div id="tab-val-top-validator" class="val-analytics-tab-content" style="display:none; flex:1; overflow:auto; max-height:150px;">
-                        <table class="report-table" style="width:100%; font-size:10px;">
-                            <thead><tr><th style="width:30px;">#</th><th>Most Resolved</th><th>Most Unresolved</th><th>Most Total Tasks</th><th>Most Present</th></tr></thead>
-                            <tbody id="val-analytics-validator-tbody"></tbody>
-                        </table>
-                    </div>
-                    <div id="tab-val-reason-analysis" class="val-analytics-tab-content" style="display:none; flex:1; overflow:hidden;">
+                    <div id="tab-val-reason-analysis" class="val-analytics-tab-content" style="flex:1; overflow:hidden;">
                         <div style="height:120px; margin-bottom:5px; position:relative; width:100%;">
                             <canvas id="val-reason-chart"></canvas>
                         </div>
@@ -1572,16 +1559,15 @@
                                 <option value="week">This Week</option>
                             </select>
                         </div>
-                        <div style="overflow:auto; max-height:120px;">
-                            <table class="report-table" style="width:100%; font-size:10px;">
-                                <thead><tr><th>SKU</th><th>Desc</th><th>Reason</th><th>Count</th></tr></thead>
-                                <tbody id="val-analytics-reason-tbody"></tbody>
-                            </table>
-                        </div>
                     </div>
                     <div id="tab-val-trend" class="val-analytics-tab-content" style="display:none; flex:1; overflow:hidden;">
                         <div style="position:relative; height:100%; width:100%; padding:5px;">
                             <canvas id="val-trend-chart"></canvas>
+                        </div>
+                    </div>
+                    <div id="tab-val-hourly" class="val-analytics-tab-content" style="display:none; flex:1; overflow:hidden;">
+                        <div style="position:relative; height:100%; width:100%; padding:5px;">
+                            <canvas id="val-hourly-chart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -3847,6 +3833,7 @@
         let valHistoryRows = 10;
         let valReasonChart = null;
         let valTrendChart = null;
+        let valHourlyChart = null;
         
         // Filters
         let valFilterAssigned1 = '';
@@ -3892,6 +3879,22 @@
             const unresolvedTasksTbody = document.getElementById('unresolved-tasks-tbody');
             unresolvedTasksTbody.innerHTML = '';
             historyTasksTbody.innerHTML = '';
+
+            const opsValidatorsList = getOpsValidators().sort((a, b) => a.name.localeCompare(b.name));
+            const reasonsList = ["Missing", "Oversell", "Damaged", "Expired", "Near Expiry", "Website Issue", "Supplier Issue", "Others"];
+            
+            const createSelect = (list, current, cls, id) => {
+                let opts = `<option value="">-</option>`;
+                list.forEach(item => {
+                    const val = typeof item === 'object' ? item.name : item;
+                    const selected = (val === current) ? 'selected' : '';
+                    opts += `<option value="${val}" ${selected}>${val}</option>`;
+                });
+                if (current && !list.some(item => (typeof item === 'object' ? item.name : item) === current)) {
+                    opts += `<option value="${current}" selected>${current}</option>`;
+                }
+                return `<select class="${cls}" data-id="${id}" style="width:100%; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">${opts}</select>`;
+            };
             
             let tasks = getValidationTasks();
 
@@ -4127,6 +4130,9 @@
                     }
                     const validatorInput = `<select class="task-validator-input" data-id="${t.id}" style="width:100%; padding:4px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">${options}</select>`;
 
+                    const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
+                    const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -4137,7 +4143,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     pendingTasksTbody.appendChild(tr);
                 });
             }
@@ -4192,6 +4198,9 @@
                     }
                     const validatorInput = `<select class="task-validator-input" data-id="${t.id}" style="width:100%; padding:4px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">${options}</select>`;
 
+                    const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
+                    const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -4202,7 +4211,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     assignedTasksTbody.appendChild(tr);
                 });
             }
@@ -4319,6 +4328,9 @@
                     // Dropdown for reassignment
                     const validatorInput = `<select class="task-validator-input" data-id="${t.id}" style="width:100%; padding:4px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">${options}</select>`;
 
+                    const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
+                    const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -4326,7 +4338,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     unresolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -4442,7 +4454,16 @@
 
         function renderValAnalytics() {
             let tasks = getValidationTasks();
-            const rawTasks = [...tasks]; // Keep raw for specific period overrides
+            
+            // Apply Table Filters to Analytics
+            if (valFilterAssigned1) {
+                tasks = tasks.filter(t => (t.validator || '').toLowerCase().includes(valFilterAssigned1));
+            }
+            if (valFilterSku1) {
+                tasks = tasks.filter(t => (t.sku || '').toLowerCase().includes(valFilterSku1));
+            }
+
+            const rawTasks = [...tasks]; // Keep raw (filtered by criteria but not date) for specific period overrides
             const valStart = document.getElementById('val-start-date');
             const valEnd = document.getElementById('val-end-date');
             const startStr = (valStart && valStart.value) || globalStartDate.value;
@@ -4561,9 +4582,10 @@
             // Reason Analysis
             const reasonTbody = document.getElementById('val-analytics-reason-tbody');
             const reasonPeriod = document.getElementById('val-analytics-reason-period');
+            const ctxReason = document.getElementById('val-reason-chart');
             
-            if(reasonTbody) {
-                reasonTbody.innerHTML = '';
+            if(reasonTbody || ctxReason) {
+                if(reasonTbody) reasonTbody.innerHTML = '';
                 let reasonTasks = tasks; // Default to global filtered
                 
                 if (reasonPeriod) {
@@ -4605,13 +4627,15 @@
                 skuReasonList.sort((a,b) => b.totalCount - a.totalCount);
                 const topSkuReasons = skuReasonList.slice(0, 20);
                 
-                if(topSkuReasons.length === 0) reasonTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">No data</td></tr>';
-                
-                topSkuReasons.forEach(item => {
-                    const desc = masterMap[item.sku] || '-';
-                    const shortDesc = desc.length > 15 ? desc.substring(0, 15) + '...' : desc;
-                    reasonTbody.innerHTML += `<tr><td>${item.sku}</td><td title="${desc}">${shortDesc}</td><td>${item.topReason}</td><td>${item.totalCount}</td></tr>`;
-                });
+                if(reasonTbody) {
+                    if(topSkuReasons.length === 0) reasonTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">No data</td></tr>';
+                    
+                    topSkuReasons.forEach(item => {
+                        const desc = masterMap[item.sku] || '-';
+                        const shortDesc = desc.length > 15 ? desc.substring(0, 15) + '...' : desc;
+                        reasonTbody.innerHTML += `<tr><td>${item.sku}</td><td title="${desc}">${shortDesc}</td><td>${item.topReason}</td><td>${item.totalCount}</td></tr>`;
+                    });
+                }
 
                 // Render Reason Chart
                 const reasonCounts = {};
@@ -4621,7 +4645,6 @@
                 });
                 const sortedReasons = Object.entries(reasonCounts).sort((a,b) => b[1] - a[1]).slice(0, 8);
                 
-                const ctxReason = document.getElementById('val-reason-chart');
                 if(ctxReason) {
                     if(valReasonChart) valReasonChart.destroy();
                     valReasonChart = new Chart(ctxReason, {
@@ -4689,11 +4712,42 @@
                     }
                 });
             }
+
+            // Hourly Output
+            const ctxHourly = document.getElementById('val-hourly-chart');
+            if(ctxHourly) {
+                const hourlyCounts = new Array(24).fill(0);
+                tasks.forEach(t => {
+                    if(t.status === 'Completed' && t.completedAt) {
+                        const h = new Date(t.completedAt).getHours();
+                        hourlyCounts[h]++;
+                    }
+                });
+                
+                if(valHourlyChart) valHourlyChart.destroy();
+                valHourlyChart = new Chart(ctxHourly, {
+                    type: 'bar',
+                    data: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        datasets: [{
+                            label: 'Resolved Tasks',
+                            data: hourlyCounts,
+                            backgroundColor: '#9b59b6',
+                            borderRadius: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Hourly Output (Resolved)', font: { size: 10 } } },
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
+                    }
+                });
+            }
         }
 
         function exportValAnalytics() {
             // Determine active tab
-            const skuTab = document.getElementById('tab-val-top-sku'); const valTab = document.getElementById('tab-val-top-validator'); const reasonTab = document.getElementById('tab-val-reason-analysis'); const trendTab = document.getElementById('tab-val-trend'); let activeTab = 'sku'; if (valTab && valTab.style.display !== 'none') activeTab = 'validator'; if (reasonTab && reasonTab.style.display !== 'none') activeTab = 'reason'; if (trendTab && trendTab.style.display !== 'none') activeTab = 'trend';
+            const skuTab = document.getElementById('tab-val-top-sku'); const valTab = document.getElementById('tab-val-top-validator'); const reasonTab = document.getElementById('tab-val-reason-analysis'); const trendTab = document.getElementById('tab-val-trend'); const hourlyTab = document.getElementById('tab-val-hourly'); let activeTab = 'sku'; if (valTab && valTab.style.display !== 'none') activeTab = 'validator'; if (reasonTab && reasonTab.style.display !== 'none') activeTab = 'reason'; if (trendTab && trendTab.style.display !== 'none') activeTab = 'trend'; if (hourlyTab && hourlyTab.style.display !== 'none') activeTab = 'hourly';
 
             // Recalculate data
             let tasks = getValidationTasks();
@@ -4813,6 +4867,20 @@
                 sortedDates.forEach(d => {
                     const item = trendData[d];
                     rows.push([d, item.total, item.resolved, item.unresolved]);
+                });
+            } else if (activeTab === 'hourly') {
+                headers = ['Hour', 'Resolved Count'];
+                filename = 'hourly_output_analytics.csv';
+                const hourlyCounts = new Array(24).fill(0);
+                tasks.forEach(t => {
+                    if(t.status === 'Completed' && t.completedAt) {
+                        const h = new Date(t.completedAt).getHours();
+                        hourlyCounts[h]++;
+                    }
+                });
+                
+                hourlyCounts.forEach((count, i) => {
+                    rows.push([`${i}:00`, count]);
                 });
             }
 
@@ -4993,6 +5061,28 @@
                         showToast(`Task assigned to ${newValidator}`);
                     }
                 }
+                if(e.target.classList.contains('task-ops-validator-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].opsValidator = val;
+                        saveValidationTasks(tasks);
+                        showToast('Ops Validator updated');
+                    }
+                }
+                if(e.target.classList.contains('task-reason-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].reason = val;
+                        saveValidationTasks(tasks);
+                        showToast('Reason updated');
+                    }
+                }
             });
         }
         const assignedTasksTbody = document.getElementById('assigned-tasks-tbody');
@@ -5010,6 +5100,28 @@
                         renderValidationTasks();
                         renderValidatorsModal();
                         showToast(`Task assigned to ${newValidator}`);
+                    }
+                }
+                if(e.target.classList.contains('task-ops-validator-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].opsValidator = val;
+                        saveValidationTasks(tasks);
+                        showToast('Ops Validator updated');
+                    }
+                }
+                if(e.target.classList.contains('task-reason-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].reason = val;
+                        saveValidationTasks(tasks);
+                        showToast('Reason updated');
                     }
                 }
             });
@@ -5090,6 +5202,28 @@
                         }
                     } else {
                         renderValidationTasks(); // Revert selection
+                    }
+                }
+                if(e.target.classList.contains('task-ops-validator-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].opsValidator = val;
+                        saveValidationTasks(tasks);
+                        showToast('Ops Validator updated');
+                    }
+                }
+                if(e.target.classList.contains('task-reason-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].reason = val;
+                        saveValidationTasks(tasks);
+                        showToast('Reason updated');
                     }
                 }
             });
