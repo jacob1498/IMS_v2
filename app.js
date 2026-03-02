@@ -777,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }catch(e){}
 
   // Sidebar toggle behavior (hide/unhide)
+  const sidebarToggle = document.getElementById('sidebar-toggle');
   if(sidebarToggle){
     // restore previous state
     const collapsed = localStorage.getItem('dms_sidebar_collapsed') === '1';
