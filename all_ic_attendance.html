@@ -502,7 +502,7 @@
           <button id="quick-time-in-btn" class="icon-btn" style="background:#2ecc71; color:white; font-weight:bold; padding: 5px 10px; font-size:12px;">GO</button>
           <button id="quick-clear-btn" class="icon-btn" style="background:#fff; color:#333; border:1px solid #ccc; padding: 5px 8px; font-size:12px;" title="Clear">C</button>
           <input type="text" id="quick-user-name" placeholder="Name" readonly style="width:150px; padding:5px; border:1px solid #eee; border-radius:4px; background:#fff; color:#555; font-size:12px;">
-          <input type="text" id="quick-user-role" placeholder="Role" readonly style="width:100px; padding:5px; border:1px solid #eee; border-radius:4px; background:#fff; color:#555; font-size:12px;">
+          <input type="text" id="quick-user-job" placeholder="Job Desc" style="width:100px; padding:5px; border:1px solid #ccc; border-radius:4px; background:#fff; color:#555; font-size:12px;">
       </div>
       <div class="att-tabs">
           <button class="att-tab active" data-shift="">All Shifts</button>
@@ -1071,10 +1071,19 @@
   <!-- IC Master Modal -->
   <div id="ic-master-modal" class="modal hidden" style="z-index: 10025;">
     <div class="modal-overlay"></div>
-    <div class="modal-content card" style="max-width: 600px; margin: 50px auto; display:flex; flex-direction:column; max-height:85vh;">
+    <div class="modal-content card" style="max-width: 700px; margin: 50px auto; display:flex; flex-direction:column; max-height:85vh;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0">IC User ID Master (IC Support)</h3>
+            <h3 style="margin:0">IC User ID Master</h3>
             <div style="display:flex; gap:5px;">
+                <button id="ic-master-print-btn" class="icon-btn" title="Print List">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                </button>
+                <button id="ic-master-export-btn" class="icon-btn" title="Export CSV">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button id="ic-master-delete-btn" class="icon-btn" title="Delete Selected" style="color:#d9534f; display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                </button>
                 <button id="ic-master-template-btn" class="icon-btn" title="Download Template">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 </button>
@@ -1105,13 +1114,22 @@
             <button id="save-ic-master-btn" class="icon-btn" style="background:#2752a7; color:white; height:28px; padding:0 10px;">Save</button>
         </div>
 
-        <div style="margin-bottom:10px;">
-            <input type="text" id="ic-master-search" placeholder="Search..." style="padding:6px; border:1px solid #ccc; border-radius:4px; width: 100%;">
+        <div style="margin-bottom:10px; display:flex; gap:10px;">
+            <select id="ic-master-role-filter" style="padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <option value="All">All Roles</option>
+                <option value="IC Support" selected>IC Support</option>
+                <option value="IC Back up">IC Back up</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Admin">Admin</option>
+                <option value="Management">Management</option>
+            </select>
+            <input type="text" id="ic-master-search" placeholder="Search..." style="padding:6px; border:1px solid #ccc; border-radius:4px; flex:1;">
         </div>
         <div style="flex:1; overflow:auto; border:1px solid #eee;">
             <table id="ic-master-table" class="report-table" style="width:100%;">
                 <thead>
                     <tr>
+                        <th style="width:30px; position:sticky; top:0; z-index:1;"><input type="checkbox" id="ic-master-select-all"></th>
                         <th class="sortable" data-sort="userId" style="position:sticky; top:0; z-index:1;">User ID <span class="sort-icon"></span></th>
                         <th class="sortable" data-sort="name" style="position:sticky; top:0; z-index:1;">Name <span class="sort-icon"></span></th>
                         <th class="sortable" data-sort="role" style="position:sticky; top:0; z-index:1;">Role <span class="sort-icon"></span></th>
@@ -1778,6 +1796,29 @@
             <button id="go-to-timestamp-btn" class="icon-btn" style="justify-content:flex-start; width:100%; padding:8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px; width:16px; height:16px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Activity Tracker
             </button>
+        </div>
+    </div>
+  </div>
+
+  <!-- Validator Summary Modal -->
+  <div id="val-summary-modal" class="modal hidden" style="z-index: 10055;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card" style="width: 90%; max-width: 1200px; height: 85vh; margin: 40px auto; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0" id="val-summary-title">Tasks</h3>
+            <button class="icon-btn close-modal">&times;</button>
+        </div>
+        <div style="margin-bottom:10px;">
+            <input type="text" id="val-summary-search" placeholder="Search..." style="padding:6px; border:1px solid #ccc; border-radius:4px; width: 100%;">
+        </div>
+        <div style="flex:1; overflow:auto; border:1px solid #eee;">
+            <table class="report-table" style="width:100%; font-size:11px;">
+                <thead id="val-summary-thead"></thead>
+                <tbody id="val-summary-tbody"></tbody>
+            </table>
+        </div>
+        <div style="text-align:right; margin-top:10px;">
+             <button class="icon-btn close-modal" style="border: 1px solid #ccc; padding: 8px 16px;">Close</button>
         </div>
     </div>
   </div>
@@ -3295,6 +3336,7 @@
         function renderIcMaster() {
             const tbody = document.querySelector('#ic-master-table tbody');
             const jobSelect = document.getElementById('ic-master-job');
+            const roleFilter = document.getElementById('ic-master-role-filter');
             
             if(!tbody) return;
             
@@ -3313,8 +3355,11 @@
             let users = [];
             try { users = JSON.parse(localStorage.getItem('ims_master_users_v1') || '[]'); } catch(e) {}
             
-            // Filter for IC Support
-            users = users.filter(u => u.role === 'IC Support');
+            // Filter by Role
+            const filterVal = roleFilter ? roleFilter.value : 'IC Support';
+            if (filterVal !== 'All') {
+                users = users.filter(u => u.role === filterVal);
+            }
             
             const term = icMasterSearch ? icMasterSearch.value.toLowerCase() : '';
             if(term) {
@@ -3354,15 +3399,18 @@
             if(nextBtn) nextBtn.disabled = icMasterPage >= totalPages;
             
             if(paginatedUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px; color:#999;">No IC Support users found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:10px; color:#999;">No users found.</td></tr>';
+                if(document.getElementById('ic-master-select-all')) document.getElementById('ic-master-select-all').checked = false;
+                updateIcMasterDeleteBtn();
                 return;
             }
             
             paginatedUsers.forEach(u => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${u.userId}</td><td>${u.name}</td><td>${u.role}</td><td>${u.jobDescription || ''}</td><td><button class="icon-btn edit-ic-master-btn" data-id="${u.userId}" title="Edit" style="padding:2px 6px;">✎</button></td>`;
+                tr.innerHTML = `<td><input type="checkbox" class="ic-master-cb" value="${u.userId}"></td><td>${u.userId}</td><td>${u.name}</td><td>${u.role}</td><td>${u.jobDescription || ''}</td><td><button class="icon-btn edit-ic-master-btn" data-id="${u.userId}" title="Edit" style="padding:2px 6px;">✎</button></td>`;
                 tbody.appendChild(tr);
             });
+            updateIcMasterDeleteBtn();
         }
 
         // Sort headers
@@ -3397,6 +3445,10 @@
             icMasterPage = Math.floor(firstItem / icMasterRowsPerPage) + 1;
             renderIcMaster();
         });
+
+        if(document.getElementById('ic-master-role-filter')) {
+            document.getElementById('ic-master-role-filter').addEventListener('change', () => { icMasterPage = 1; renderIcMaster(); });
+        }
 
         const saveIcMasterBtn = document.getElementById('save-ic-master-btn');
         if(saveIcMasterBtn) {
@@ -3453,6 +3505,7 @@
                     }
                 }
             });
+            icMasterTable.addEventListener('change', (e) => { if(e.target.classList.contains('ic-master-cb')) updateIcMasterDeleteBtn(); });
         }
 
         const validatorsViewBtn = document.getElementById('validators-view-btn');
@@ -3472,6 +3525,67 @@
         const resolvedTasksTbody = document.getElementById('resolved-tasks-tbody');
         const uploadSkuBtn = document.getElementById('upload-sku-desc-btn');
         const uploadSkuFile = document.getElementById('upload-sku-desc-file');
+
+        // IC Master Bulk Actions
+        const icMasterSelectAll = document.getElementById('ic-master-select-all');
+        const icMasterDeleteBtn = document.getElementById('ic-master-delete-btn');
+        const icMasterExportBtn = document.getElementById('ic-master-export-btn');
+        const icMasterPrintBtn = document.getElementById('ic-master-print-btn');
+
+        function updateIcMasterDeleteBtn() {
+            const count = document.querySelectorAll('.ic-master-cb:checked').length;
+            if(icMasterDeleteBtn) icMasterDeleteBtn.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+
+        if(icMasterSelectAll) {
+            icMasterSelectAll.addEventListener('change', (e) => {
+                document.querySelectorAll('.ic-master-cb').forEach(cb => cb.checked = e.target.checked);
+                updateIcMasterDeleteBtn();
+            });
+        }
+
+        if(icMasterDeleteBtn) {
+            icMasterDeleteBtn.addEventListener('click', () => {
+                if(!confirm('Delete selected users?')) return;
+                const selected = Array.from(document.querySelectorAll('.ic-master-cb:checked')).map(cb => cb.value);
+                let users = [];
+                try { users = JSON.parse(localStorage.getItem('ims_master_users_v1') || '[]'); } catch(e) {}
+                users = users.filter(u => !selected.includes(u.userId));
+                localStorage.setItem('ims_master_users_v1', JSON.stringify(users));
+                renderIcMaster();
+                showToast(`${selected.length} users deleted`);
+            });
+        }
+
+        if(icMasterExportBtn) {
+            icMasterExportBtn.addEventListener('click', () => {
+                let users = [];
+                try { users = JSON.parse(localStorage.getItem('ims_master_users_v1') || '[]'); } catch(e) {}
+                if(users.length === 0) { alert('No users to export'); return; }
+                const rows = [['User ID', 'Name', 'Role', 'Job Description']];
+                users.forEach(u => rows.push([`"${u.userId}"`, `"${u.name}"`, `"${u.role||''}"`, `"${u.jobDescription||''}"`].join(',')));
+                const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'ic_master_users.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            });
+        }
+
+        if(icMasterPrintBtn) {
+            icMasterPrintBtn.addEventListener('click', () => {
+                const printWindow = window.open('', '_blank');
+                let users = [];
+                try { users = JSON.parse(localStorage.getItem('ims_master_users_v1') || '[]'); } catch(e) {}
+                const filterVal = document.getElementById('ic-master-role-filter') ? document.getElementById('ic-master-role-filter').value : 'All';
+                if (filterVal !== 'All') users = users.filter(u => u.role === filterVal);
+                users.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+                
+                let html = `<html><head><title>User Master List</title><style>body{font-family:sans-serif; font-size:12px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #ccc;padding:6px;text-align:left;} th{background:#f0f0f0;} h2{margin-bottom:5px;}</style></head><body><h2>User Master List - ${filterVal}</h2><table><thead><tr><th>User ID</th><th>Name</th><th>Role</th><th>Job Description</th></tr></thead><tbody>`;
+                users.forEach(u => html += `<tr><td>${u.userId}</td><td>${u.name}</td><td>${u.role || ''}</td><td>${u.jobDescription || ''}</td></tr>`);
+                html += `</tbody></table><script>window.onload = function() { window.print(); window.close(); }<\/script></body></html>`;
+                printWindow.document.write(html);
+                printWindow.document.close();
+            });
+        }
 
         function printValidatorSignOff(validator, validatorTasks) {
             const printWindow = window.open('', '_blank');
@@ -3838,25 +3952,11 @@
         // Filters
         let valFilterAssigned1 = '';
         let valFilterSku1 = '';
+        let currentValSummaryType = '';
 
         function filterValDashboard(type) {
-            if (type === 'total') {
-                if(document.getElementById('val-filter-sku-1')) document.getElementById('val-filter-sku-1').value=''; 
-                if(document.getElementById('val-filter-assigned-1')) document.getElementById('val-filter-assigned-1').value=''; 
-                if(document.getElementById('val-filter-priority-1')) document.getElementById('val-filter-priority-1').value='';
-                renderValidationTasks();
-            } else if (type === 'resolved') {
-                const btn = document.querySelector("button[onclick*='tab-val-resolved']");
-                if(btn) btn.click();
-            } else if (type === 'pending') {
-                const btn = document.querySelector("button[onclick*='tab-val-pending']");
-                if(btn) btn.click();
-            } else if (type === 'assigned') {
-                const btn = document.querySelector("button[onclick*='tab-val-assigned']");
-                if(btn) btn.click();
-            } else if (type === 'unresolved') {
-                const btn = document.querySelector("button[onclick*='tab-val-unresolved']");
-                if(btn) btn.click();
+            if (type === 'total' || type === 'pending' || type === 'assigned' || type === 'resolved' || type === 'unresolved') {
+                openValSummaryModal(type);
             } else if (type === 'history') {
                 const btn = document.querySelector("button[onclick*='tab-val-history']");
                 if(btn) btn.click();
@@ -3867,6 +3967,135 @@
                 const chart = document.getElementById('val-status-chart'); 
                 if(chart) chart.scrollIntoView({behavior:'smooth'});
             }
+        }
+
+        function openValSummaryModal(type) {
+            currentValSummaryType = type;
+            const modal = document.getElementById('val-summary-modal');
+            const title = document.getElementById('val-summary-title');
+            const tbody = document.getElementById('val-summary-tbody');
+            const thead = document.getElementById('val-summary-thead');
+            
+            if(!modal || !tbody || !thead) return;
+            
+            let tasks = getValidationTasks();
+            const valStart = document.getElementById('val-start-date');
+            const valEnd = document.getElementById('val-end-date');
+            const startStr = (valStart && valStart.value) || globalStartDate.value;
+            const endStr = (valEnd && valEnd.value) || globalEndDate.value;
+            const shiftFilter = document.getElementById('val-view-shift') ? document.getElementById('val-view-shift').value : '';
+
+            if (startStr || endStr) {
+                tasks = tasks.filter(t => {
+                    const shiftInfo = getShiftFromTimestamp(t.timestamp);
+                    return (!startStr || shiftInfo.date >= startStr) && (!endStr || shiftInfo.date <= endStr);
+                });
+            }
+            if (shiftFilter) {
+                tasks = tasks.filter(t => getShiftFromTimestamp(t.timestamp).shift.includes(shiftFilter));
+            }
+            
+            let filteredTasks = [];
+            let columns = [];
+            
+            if (type === 'total') {
+                title.textContent = 'Total Tasks';
+                filteredTasks = tasks;
+                columns = ['Date', 'SKU', 'Description', 'Status', 'Validator', 'Action'];
+            } else if (type === 'pending') {
+                title.textContent = 'Pending Tasks';
+                filteredTasks = tasks.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved' && (!t.validator || t.validator === 'Unassigned'));
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Assign To', 'Action'];
+            } else if (type === 'assigned') {
+                title.textContent = 'Assigned Tasks';
+                filteredTasks = tasks.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved' && t.validator && t.validator !== 'Unassigned');
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Validator', 'Action'];
+            } else if (type === 'resolved') {
+                title.textContent = 'Resolved Tasks';
+                filteredTasks = tasks.filter(t => t.status === 'Completed');
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Resolved Qty', 'Findings', 'Action'];
+            } else if (type === 'unresolved') {
+                title.textContent = 'Unresolved Tasks';
+                filteredTasks = tasks.filter(t => t.status === 'Unresolved');
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Unresolved Time', 'Action'];
+            }
+            
+            thead.innerHTML = '<tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
+            renderValSummaryRows(filteredTasks, type, tbody);
+            modal.classList.remove('hidden');
+            
+            const searchInput = document.getElementById('val-summary-search');
+            if(searchInput) {
+                searchInput.value = '';
+                searchInput.oninput = () => {
+                    const term = searchInput.value.toLowerCase();
+                    const searched = filteredTasks.filter(t => (t.sku||'').toLowerCase().includes(term) || (t.desc||'').toLowerCase().includes(term) || (t.validator||'').toLowerCase().includes(term));
+                    renderValSummaryRows(searched, type, tbody);
+                };
+            }
+        }
+
+        function renderValSummaryRows(tasks, type, tbody) {
+            tbody.innerHTML = '';
+            const opsValidatorsList = getOpsValidators().sort((a, b) => a.name.localeCompare(b.name));
+            const reasonsList = ["Missing", "Oversell", "Damaged", "Expired", "Near Expiry", "Website Issue", "Supplier Issue", "Others"];
+            
+            const createSelect = (list, current, cls, id) => {
+                let opts = `<option value="">-</option>`;
+                list.forEach(item => {
+                    const val = typeof item === 'object' ? item.name : item;
+                    const selected = (val === current) ? 'selected' : '';
+                    opts += `<option value="${val}" ${selected}>${val}</option>`;
+                });
+                return `<select class="${cls}" data-id="${id}" style="width:100%; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px;">${opts}</select>`;
+            };
+            
+            let attendanceData = getAttendanceData();
+            const validators = attendanceData.filter(item => item.area === 'Validator' && !item.timeOut);
+            const validatorNames = [...new Set(validators.map(v => v.name))].sort();
+            
+            const createValidatorSelect = (current, id) => {
+                let options = `<option value="Unassigned">Unassign</option>`;
+                validatorNames.forEach(v => {
+                    const selected = (current === v) ? 'selected' : '';
+                    options += `<option value="${v}" ${selected}>${v}</option>`;
+                });
+                if (current && !validatorNames.includes(current) && current !== 'Unassigned') {
+                    options += `<option value="${current}" selected>${current} (inactive)</option>`;
+                }
+                return `<select class="task-validator-input" data-id="${id}" style="width:100%; padding:4px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px;">${options}</select>`;
+            };
+
+            tasks.forEach(t => {
+                const tr = document.createElement('tr');
+                const dateStr = new Date(t.timestamp).toLocaleString();
+                let actionHtml = '';
+                
+                if (t.status === 'Completed') {
+                    actionHtml = `<button class="icon-btn reopen-task-btn" data-id="${t.id}" title="Reopen" style="color:#f39c12;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg></button><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>`;
+                } else if (t.status === 'Unresolved') {
+                    actionHtml = `<button class="icon-btn complete-task-btn" data-id="${t.id}" title="Resolve" style="color:#2ecc71;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></button><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>`;
+                } else {
+                    actionHtml = `<button class="icon-btn complete-task-btn" data-id="${t.id}" title="Resolve" style="color:#2ecc71;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></button><button class="icon-btn mark-unresolved-btn" data-id="${t.id}" title="Unresolved" style="color:#f39c12;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></button><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>`;
+                }
+
+                if (type === 'total') {
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.status}</td><td>${t.validator||'-'}</td><td>${actionHtml}</td>`;
+                } else if (type === 'pending' || type === 'assigned') {
+                    const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px;">`;
+                    const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+                    const opsInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
+                    const valInput = createValidatorSelect(t.validator, t.id);
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${t.sku}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${opsInput}</td><td>${valInput}</td><td>${actionHtml}</td>`;
+                } else if (type === 'resolved') {
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason}</td><td>${t.validator}</td><td>${t.resolvedQty||'-'}</td><td>${t.findings||'-'}</td><td>${actionHtml}</td>`;
+                } else if (type === 'unresolved') {
+                    const valInput = createValidatorSelect(t.validator, t.id);
+                    const unresTime = t.unresolvedAt ? new Date(t.unresolvedAt).toLocaleString() : '-';
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason}</td><td>${valInput}</td><td>${unresTime}</td><td>${actionHtml}</td>`;
+                }
+                tbody.appendChild(tr);
+            });
         }
 
         function renderValidationTasks() {
@@ -4132,6 +4361,7 @@
 
                     const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
                     const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+                    const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">`;
 
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
@@ -4143,7 +4373,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     pendingTasksTbody.appendChild(tr);
                 });
             }
@@ -4200,6 +4430,7 @@
 
                     const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
                     const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+                    const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">`;
 
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
@@ -4211,7 +4442,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     assignedTasksTbody.appendChild(tr);
                 });
             }
@@ -4330,6 +4561,7 @@
 
                     const opsValidatorInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
                     const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
+                    const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px; background:#fff; color:#333;">`;
 
                     const actionHtml = `
                         <button class="icon-btn complete-task-btn" data-id="${t.id}" title="Mark Resolved" style="color:#2ecc71; margin-right:5px;">
@@ -4338,7 +4570,7 @@
                         <button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${t.qty}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${t.sku}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     unresolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -5045,6 +5277,44 @@
             }
         }
 
+        const valSummaryTbody = document.getElementById('val-summary-tbody');
+        if(valSummaryTbody) {
+            valSummaryTbody.addEventListener('click', (e) => {
+                handleTaskAction(e);
+                // Refresh modal after action
+                setTimeout(() => openValSummaryModal(currentValSummaryType), 100);
+            });
+            valSummaryTbody.addEventListener('change', (e) => {
+                let tasks = getValidationTasks();
+                const id = e.target.dataset.id;
+                const idx = tasks.findIndex(t => t.id === id);
+                if(idx > -1) {
+                    if(e.target.classList.contains('task-validator-input')) {
+                        tasks[idx].validator = e.target.value;
+                        if(currentValSummaryType === 'unresolved' && confirm(`Reassign to ${e.target.value}?`)) {
+                             // Reassign logic similar to main table
+                             const oldTask = tasks[idx];
+                             const newTask = { ...oldTask, id: Date.now().toString(), timestamp: new Date().toISOString(), validator: e.target.value, status: 'Pending', completedAt: undefined, unresolvedAt: undefined, reassignedTo: undefined, reassignedAt: undefined };
+                             tasks.push(newTask);
+                             oldTask.status = 'Unresolved'; oldTask.subStatus = 'Reassigned'; oldTask.reassignedTo = e.target.value; oldTask.reassignedAt = new Date().toISOString();
+                        }
+                        showToast('Validator updated');
+                    } else if(e.target.classList.contains('task-ops-validator-input')) {
+                        tasks[idx].opsValidator = e.target.value;
+                        showToast('Ops Validator updated');
+                    } else if(e.target.classList.contains('task-reason-input')) {
+                        tasks[idx].reason = e.target.value;
+                        showToast('Reason updated');
+                    } else if(e.target.classList.contains('task-qty-input')) {
+                        tasks[idx].qty = e.target.value;
+                        showToast('Qty updated');
+                    }
+                    saveValidationTasks(tasks);
+                    renderValidationTasks(); // Sync main table
+                }
+            });
+        }
+
         if(pendingTasksTbody) {
             pendingTasksTbody.addEventListener('click', handleTaskAction);
             pendingTasksTbody.addEventListener('change', (e) => {
@@ -5081,6 +5351,17 @@
                         tasks[idx].reason = val;
                         saveValidationTasks(tasks);
                         showToast('Reason updated');
+                    }
+                }
+                if(e.target.classList.contains('task-qty-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].qty = val;
+                        saveValidationTasks(tasks);
+                        showToast('Qty updated');
                     }
                 }
             });
@@ -5122,6 +5403,17 @@
                         tasks[idx].reason = val;
                         saveValidationTasks(tasks);
                         showToast('Reason updated');
+                    }
+                }
+                if(e.target.classList.contains('task-qty-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].qty = val;
+                        saveValidationTasks(tasks);
+                        showToast('Qty updated');
                     }
                 }
             });
@@ -5226,6 +5518,17 @@
                         showToast('Reason updated');
                     }
                 }
+                if(e.target.classList.contains('task-qty-input')) {
+                    const id = e.target.dataset.id;
+                    const val = e.target.value;
+                    let tasks = getValidationTasks();
+                    const idx = tasks.findIndex(t => t.id === id);
+                    if(idx > -1) {
+                        tasks[idx].qty = val;
+                        saveValidationTasks(tasks);
+                        showToast('Qty updated');
+                    }
+                }
             });
         }
         const historyTasksTbody = document.getElementById('history-tasks-tbody');
@@ -5315,11 +5618,32 @@
                 if(selected.length === 0) return;
                 
                 let attendanceData = getAttendanceData();
-                const validators = attendanceData.filter(item => item.area === 'Validator' && !item.timeOut).map(v => v.name);
-                const uniqueValidators = [...new Set(validators)].sort();
+                const activeValidators = attendanceData.filter(item => item.area === 'Validator' && !item.timeOut);
                 
-                const newValidator = prompt(`Assign ${selected.length} tasks to validator:\n(Available: ${uniqueValidators.join(', ')})`);
-                if(!newValidator) return;
+                const valMap = {};
+                const displayList = [];
+                activeValidators.forEach(v => {
+                    if(v.userId) {
+                        valMap[v.userId.toUpperCase()] = v.name;
+                        displayList.push(`${v.userId} - ${v.name}`);
+                    }
+                });
+                const uniqueDisplay = [...new Set(displayList)].sort();
+                
+                const inputVal = prompt(`Assign ${selected.length} tasks. Enter Validator User ID:\n(Available: ${uniqueDisplay.join(', ')})`);
+                if(!inputVal) return;
+
+                const upperInput = inputVal.trim().toUpperCase();
+                let newValidator = valMap[upperInput];
+                if (!newValidator) {
+                    const found = activeValidators.find(v => v.name.toUpperCase() === upperInput);
+                    if (found) newValidator = found.name;
+                }
+
+                if (!newValidator) {
+                    alert('Validator not found (check User ID or Name).');
+                    return;
+                }
 
                 if(confirm(`Confirm assigning ${selected.length} tasks to "${newValidator}"?`)) {
                     let tasks = getValidationTasks();
@@ -6248,7 +6572,7 @@
         const quickTimeInBtn = document.getElementById('quick-time-in-btn');
         const quickUserIdInput = document.getElementById('quick-user-id');
         const quickUserNameInput = document.getElementById('quick-user-name');
-        const quickUserRoleInput = document.getElementById('quick-user-role');
+        const quickUserJobInput = document.getElementById('quick-user-job');
         const quickClearBtn = document.getElementById('quick-clear-btn');
         const manualAddBtn = document.getElementById('manual-add-btn');
 
@@ -6267,7 +6591,7 @@
                 quickClearBtn.addEventListener('click', () => {
                     quickUserIdInput.value = '';
                     if(quickUserNameInput) quickUserNameInput.value = '';
-                    if(quickUserRoleInput) quickUserRoleInput.value = '';
+                    if(quickUserJobInput) quickUserJobInput.value = '';
                     quickUserIdInput.focus();
                 });
             }
@@ -6289,14 +6613,14 @@
                     const user = masterUsers.find(u => u.userId === val);
                     if (user) {
                         if(quickUserNameInput) quickUserNameInput.value = user.name || '';
-                        if(quickUserRoleInput) quickUserRoleInput.value = user.role || '';
+                        if(quickUserJobInput) quickUserJobInput.value = user.jobDescription || '';
                     } else {
                         if(quickUserNameInput) quickUserNameInput.value = '';
-                        if(quickUserRoleInput) quickUserRoleInput.value = '';
+                        if(quickUserJobInput) quickUserJobInput.value = '';
                     }
                 } else {
                     if(quickUserNameInput) quickUserNameInput.value = '';
-                    if(quickUserRoleInput) quickUserRoleInput.value = '';
+                    if(quickUserJobInput) quickUserJobInput.value = '';
                 }
             });
 
@@ -6335,7 +6659,7 @@
                     userId: user.userId,
                     name: user.name,
                     role: user.role || 'IC Support',
-                    area: user.jobDescription || '', // Auto-fill Job Description from master
+                    area: quickUserJobInput ? quickUserJobInput.value : (user.jobDescription || ''),
                     timeIn: timeIn,
                     breakOut: '',
                     breakIn: '',
@@ -6350,7 +6674,7 @@
                 showToast(`Timed in: ${user.name}`);
                 quickUserIdInput.value = '';
                 if(quickUserNameInput) quickUserNameInput.value = '';
-                if(quickUserRoleInput) quickUserRoleInput.value = '';
+                if(quickUserJobInput) quickUserJobInput.value = '';
                 
                 renderAttendanceTable();
                 if(flipContainer.classList.contains('flipped')) renderSubRoleDashboard();
@@ -7148,6 +7472,12 @@
 
         // Initialize dropdown on load
         updateResolveFindingsDropdown();
+
+        // Check for auto-open IC Master modal
+        if (sessionStorage.getItem('ims_open_ic_master_modal') === 'true') {
+            sessionStorage.removeItem('ims_open_ic_master_modal');
+            if(icMasterBtn) icMasterBtn.click();
+        }
 
         // Check for auto-open validators modal
         if (sessionStorage.getItem('ims_open_validators_modal') === 'true') {
