@@ -152,6 +152,12 @@
         <input type="date" id="analytics-start" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
         <span>to</span>
         <input type="date" id="analytics-end" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+        <select id="analytics-shift" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">All Shifts</option>
+            <option value="1st Shift">1st Shift</option>
+            <option value="2nd Shift">2nd Shift</option>
+            <option value="3rd Shift">3rd Shift</option>
+        </select>
         <button id="apply-filter" class="icon-btn" style="background: #2752a7; color: white; padding: 6px 12px;">Apply</button>
         <button id="clear-filter" class="icon-btn" style="border: 1px solid #ccc; padding: 6px 12px;">Clear</button>
         <button id="export-dashboard" class="icon-btn" style="background: #27ae60; color: white; padding: 6px 12px; margin-left: auto;">Export Excel</button>
@@ -475,6 +481,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const startInput = document.getElementById('analytics-start');
         const endInput = document.getElementById('analytics-end');
+        const shiftInput = document.getElementById('analytics-shift');
         
         // Default to current month
         const now = new Date();
@@ -495,6 +502,34 @@
             };
         }
         
+        function getShiftFromTimestamp(ts) {
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return { date: '', shift: '' };
+            const h = d.getHours();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            let dateStr = `${year}-${month}-${day}`;
+            let shift = '';
+            
+            if (h >= 6 && h < 14) {
+                shift = '1st Shift-(6am-2pm)';
+            } else if (h >= 14 && h < 22) {
+                shift = '2nd Shift-(2pm-10pm)';
+            } else {
+                shift = '3rd Shift-(10pm-6am)';
+                if (h < 6) {
+                    const prev = new Date(d);
+                    prev.setDate(d.getDate() - 1);
+                    const pYear = prev.getFullYear();
+                    const pMonth = String(prev.getMonth() + 1).padStart(2, '0');
+                    const pDay = String(prev.getDate()).padStart(2, '0');
+                    dateStr = `${pYear}-${pMonth}-${pDay}`;
+                }
+            }
+            return { date: dateStr, shift };
+        }
+
         // Global variable for full chart instance
         let fullChartInstance = null;
 
@@ -502,14 +537,27 @@
             const { attendance, tasks, counters, cycleCounts, timestamps } = getData();
             const start = startInput.value;
             const end = endInput.value;
+            const shiftFilter = shiftInput.value;
 
             // Filter Data
-            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end));
+            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end) && (!shiftFilter || a.shift.includes(shiftFilter)));
+            
+            /*
             const filteredTasks = tasks.filter(t => {
                 const d = t.timestamp.split('T')[0];
                 return (!start || d >= start) && (!end || d <= end);
             });
             const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end));
+            */
+            
+            // Use operational date filtering for tasks
+            const filteredTasks = tasks.filter(t => {
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
+            });
+            
+            // Use operational date filtering for counters (already have date/shift props)
+            const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end) && (!shiftFilter || c.shift.includes(shiftFilter)));
 
             // Stats
             // Calculate Attendance Percentage
@@ -584,8 +632,9 @@
 
             // Use actuals map from cycle counts if available, else hourlyActuals
             cycleCounts.forEach(c => {
-                const d = (c.createdDate || c.date || '').split('T')[0];
-                if ((!start || d >= start) && (!end || d <= end)) {
+                const ts = c.createdDate || c.date;
+                const info = getShiftFromTimestamp(ts);
+                if ((!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter))) {
                     // Simple count of records in cycle count DB
                     totalOutput++;
                     if(c.location) locationSet.add(c.location);
@@ -640,8 +689,8 @@
             attendance.forEach(a => { if(a.userId && a.name) userNames[a.userId] = a.name; });
 
             const filteredTimestamps = timestamps.filter(t => {
-                const d = t.timestamp.split('T')[0];
-                return (!start || d >= start) && (!end || d <= end);
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
             });
 
             filteredTimestamps.forEach(t => {
@@ -695,13 +744,14 @@
             const { attendance, tasks, counters, cycleCounts } = getData();
             const start = startInput.value;
             const end = endInput.value;
+            const shiftFilter = shiftInput.value;
 
-            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end));
+            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end) && (!shiftFilter || a.shift.includes(shiftFilter)));
             const filteredTasks = tasks.filter(t => {
-                const d = t.timestamp.split('T')[0];
-                return (!start || d >= start) && (!end || d <= end);
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
             });
-            const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end));
+            const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end) && (!shiftFilter || c.shift.includes(shiftFilter)));
             
             modal.classList.remove('hidden');
             
@@ -1164,6 +1214,7 @@
         window.showFullList = function(type, order) {
             const start = startInput.value;
             const end = endInput.value;
+            const shiftFilter = shiftInput.value;
             const { attendance, tasks, timestamps } = getData();
             
             let counts = {};
@@ -1173,14 +1224,14 @@
             if (type === 'attendance') {
                 title = order === 'desc' ? 'Top Attendance Users (All)' : 'Bottom Attendance Users (All)';
                 suffix = 'Shifts';
-                const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end));
+                const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end) && (!shiftFilter || a.shift.includes(shiftFilter)));
                 filteredAtt.forEach(a => {
                     if(a.name) counts[a.name] = (counts[a.name] || 0) + 1;
                 });
             } else if (type === 'long-breaks') {
                 title = 'Top Users with Long Breaks (>40m)';
                 suffix = 'Times';
-                const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end));
+                const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end) && (!shiftFilter || a.shift.includes(shiftFilter)));
                 filteredAtt.forEach(a => {
                     if (a.breakOut && a.breakIn && a.name) {
                         const [h1, m1] = a.breakOut.split(':').map(Number);
@@ -1196,8 +1247,8 @@
                 title = order === 'desc' ? 'Top Validators (All)' : 'Bottom Validators (All)';
                 suffix = 'Resolved';
                 const filteredTasks = tasks.filter(t => {
-                    const d = t.timestamp.split('T')[0];
-                    return (!start || d >= start) && (!end || d <= end);
+                    const info = getShiftFromTimestamp(t.timestamp);
+                    return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
                 });
                 filteredTasks.forEach(t => {
                     if(t.status === 'Completed' && t.validator && t.validator !== 'Unassigned') {
@@ -1210,8 +1261,8 @@
                 const userNames = {};
                 attendance.forEach(a => { if(a.userId && a.name) userNames[a.userId] = a.name; });
                 const filteredTimestamps = timestamps.filter(t => {
-                    const d = t.timestamp.split('T')[0];
-                    return (!start || d >= start) && (!end || d <= end);
+                    const info = getShiftFromTimestamp(t.timestamp);
+                    return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
                 });
                 filteredTimestamps.forEach(t => {
                     if (t.action === 'End' && t.skus) {
@@ -1223,14 +1274,14 @@
                 title = order === 'desc' ? 'Top Counters by Duration (All)' : 'Bottom Counters by Duration (All)';
                 suffix = 'mins';
                 const filteredTimestamps = timestamps.filter(t => {
-                    const d = t.timestamp.split('T')[0];
-                    return (!start || d >= start) && (!end || d <= end);
+                    const info = getShiftFromTimestamp(t.timestamp);
+                    return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
                 });
                 counts = calculateDurations(filteredTimestamps, attendance);
             } else if (type.startsWith('items-')) {
                 const filteredTasks = tasks.filter(t => {
-                    const d = t.timestamp.split('T')[0];
-                    return (!start || d >= start) && (!end || d <= end);
+                    const info = getShiftFromTimestamp(t.timestamp);
+                    return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
                 });
                 const itemStats = {};
                 filteredTasks.forEach(t => {
@@ -1306,8 +1357,9 @@
 
                 // For Pick Bin, count unique locations from cycleCounts if available
                 const filteredCC = cycleCounts.filter(c => {
-                    const d = (c.createdDate || c.date || '').split('T')[0];
-                    return (!start || d >= start) && (!end || d <= end);
+                    const ts = c.createdDate || c.date;
+                    const info = getShiftFromTimestamp(ts);
+                    return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftInput.value || info.shift.includes(shiftInput.value));
                 });
                 
                 const pickBinSet = new Set();
@@ -1458,7 +1510,7 @@
             const dailyData = {};
             
             tasks.forEach(t => {
-                const d = t.timestamp.split('T')[0];
+                const d = getShiftFromTimestamp(t.timestamp).date;
                 if (!dailyData[d]) dailyData[d] = { total: 0, resolved: 0, unresolved: 0 };
                 dailyData[d].total++;
                 if (t.status === 'Completed') dailyData[d].resolved++;
@@ -1508,14 +1560,15 @@
             const { attendance, tasks, counters, cycleCounts } = getData();
             const start = startInput.value;
             const end = endInput.value;
+            const shiftFilter = shiftInput.value;
 
             // Filter Data
-            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end));
+            const filteredAtt = attendance.filter(a => (!start || a.date >= start) && (!end || a.date <= end) && (!shiftFilter || a.shift.includes(shiftFilter)));
             const filteredTasks = tasks.filter(t => {
-                const d = t.timestamp.split('T')[0];
-                return (!start || d >= start) && (!end || d <= end);
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= start) && (!end || info.date <= end) && (!shiftFilter || info.shift.includes(shiftFilter));
             });
-            const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end));
+            const filteredCounters = counters.filter(c => (!start || c.date >= start) && (!end || c.date <= end) && (!shiftFilter || c.shift.includes(shiftFilter)));
 
             const wb = XLSX.utils.book_new();
 
@@ -1584,7 +1637,7 @@
             // 6. Daily Task Data
             const taskData = {};
             filteredTasks.forEach(t => {
-                const d = t.timestamp.split('T')[0];
+                const d = getShiftFromTimestamp(t.timestamp).date;
                 if (!taskData[d]) taskData[d] = { total: 0, resolved: 0 };
                 taskData[d].total++;
                 if (t.status === 'Completed') taskData[d].resolved++;
@@ -1626,7 +1679,7 @@
 
         document.getElementById('apply-filter').addEventListener('click', renderDashboard);
         document.getElementById('clear-filter').addEventListener('click', () => {
-            startInput.value = ''; endInput.value = ''; renderDashboard();
+            startInput.value = ''; endInput.value = ''; shiftInput.value = ''; renderDashboard();
         });
         if(document.getElementById('exclude-replen-all')) document.getElementById('exclude-replen-all').addEventListener('change', renderDashboard);
         document.getElementById('export-dashboard').addEventListener('click', exportDashboard);
@@ -1665,6 +1718,7 @@
         document.getElementById('gen-cycle-count-report').addEventListener('click', () => {
             const startDate = repModalStart.value;
             const endDate = repModalEnd.value;
+            const shiftFilter = shiftInput.value;
             const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
             const attendance = JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]');
             
@@ -1673,8 +1727,8 @@
 
             const filteredLogs = timestamps.filter(t => {
                 if(t.deleted) return false;
-                const d = new Date(t.timestamp);
-                return (!start || d >= start) && (!end || d <= end);
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= startDate) && (!end || info.date <= endDate) && (!shiftFilter || info.shift.includes(shiftFilter));
             });
 
             const userStats = {};
@@ -1752,11 +1806,15 @@
         document.getElementById('gen-validation-report').addEventListener('click', () => {
             const startDate = repModalStart.value;
             const endDate = repModalEnd.value;
+            const shiftFilter = shiftInput.value;
             const tasks = JSON.parse(localStorage.getItem('ims_validation_tasks_v1') || '[]');
             const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
             const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
 
-            const filtered = tasks.filter(t => { const d = new Date(t.timestamp); return (!start || d >= start) && (!end || d <= end); });
+            const filtered = tasks.filter(t => { 
+                const info = getShiftFromTimestamp(t.timestamp);
+                return (!start || info.date >= startDate) && (!end || info.date <= endDate) && (!shiftFilter || info.shift.includes(shiftFilter));
+            });
             
             const totalTasks = filtered.length;
             const resolvedTasks = filtered.filter(t => t.status === 'Completed').length;
