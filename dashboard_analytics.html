@@ -1711,15 +1711,42 @@
             const avgSkuPerHr = totalHours > 0 ? (totalSkus / totalHours).toFixed(2) : 0;
             const avgPalletPerHr = totalHours > 0 ? (totalPallets / totalHours).toFixed(2) : 0;
 
-            let csv = `Cycle Count Report\nPeriod: ${startDate || 'Start'} to ${endDate || 'End'}\n\nSummary\nTotal Counters,${totalCounters}\nTotal Pallets,${totalPallets}\nTotal SKUs,${totalSkus}\nTotal Hours,${totalHours.toFixed(2)}\nAvg SKU/Hr,${avgSkuPerHr}\nAvg Pallet/Hr,${avgPalletPerHr}\n\nCounter Details\nUser ID,Name,Pallets,SKUs,Hours,SKU/Hr,Pallet/Hr\n`;
+            const wb = XLSX.utils.book_new();
             
+            // Sheet 1: Summary
+            const summaryData = [
+                ['Metric', 'Value'],
+                ['Total Counters', totalCounters],
+                ['Total Pallets', totalPallets],
+                ['Total SKUs', totalSkus],
+                ['Total Hours', totalHours.toFixed(2)],
+                ['Avg SKU/Hr', avgSkuPerHr],
+                ['Avg Pallet/Hr', avgPalletPerHr]
+            ];
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+
+            // Sheet 2: Details
+            const detailsHeader = ['User ID', 'Name', 'Pallets', 'SKUs', 'Hours', 'SKU/Hr', 'Pallet/Hr'];
+            const detailsData = [detailsHeader];
             Object.values(userStats).forEach(u => {
                 const hrs = u.duration / 3600000;
                 const skuRate = hrs > 0 ? (u.skus / hrs).toFixed(2) : 0;
                 const palletRate = hrs > 0 ? (u.pallets / hrs).toFixed(2) : 0;
-                csv += `"${u.userId}","${u.name}",${u.pallets},${u.skus},${hrs.toFixed(2)},${skuRate},${palletRate}\n`;
+                detailsData.push([u.userId, u.name, u.pallets, u.skus, parseFloat(hrs.toFixed(2)), parseFloat(skuRate), parseFloat(palletRate)]);
             });
-            downloadCSV(csv, 'cycle_count_report.csv');
+            const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
+            XLSX.utils.book_append_sheet(wb, wsDetails, "Details");
+
+            // Sheet 3: Chart Data
+            const chartData = [['User', 'SKUs', 'Pallets']];
+            Object.values(userStats).forEach(u => {
+                chartData.push([u.name || u.userId, u.skus, u.pallets]);
+            });
+            const wsChart = XLSX.utils.aoa_to_sheet(chartData);
+            XLSX.utils.book_append_sheet(wb, wsChart, "Chart Data");
+
+            XLSX.writeFile(wb, 'cycle_count_report.xlsx');
         });
 
         document.getElementById('gen-validation-report').addEventListener('click', () => {
@@ -1731,20 +1758,47 @@
 
             const filtered = tasks.filter(t => { const d = new Date(t.timestamp); return (!start || d >= start) && (!end || d <= end); });
             
-            const totalTasks = filtered.length;a
+            const totalTasks = filtered.length;
             const resolvedTasks = filtered.filter(t => t.status === 'Completed').length;
             const unresolvedTasks = filtered.filter(t => t.status === 'Unresolved').length;
             const pendingTasks = filtered.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved').length;
             const completionRate = totalTasks > 0 ? ((resolvedTasks / totalTasks) * 100).toFixed(2) : 0;
             const totalResolvedQty = filtered.reduce((sum, t) => sum + (parseInt(t.resolvedQty) || 0), 0);
 
-            let csv = `Validation Report\nPeriod: ${startDate || 'Start'} to ${endDate || 'End'}\n\nSummary\nTotal Tasks,${totalTasks}\nResolved,${resolvedTasks}\nUnresolved,${unresolvedTasks}\nPending,${pendingTasks}\nCompletion Rate,${completionRate}%\nTotal Resolved Qty,${totalResolvedQty}\n\nTask Details\nDate,SKU,Description,Qty,Reason,Ops Validator,IC Validator,Status,Resolved Qty,Findings\n`;
+            const wb = XLSX.utils.book_new();
 
+            // Sheet 1: Summary
+            const summaryData = [
+                ['Metric', 'Value'],
+                ['Total Tasks', totalTasks],
+                ['Resolved', resolvedTasks],
+                ['Unresolved', unresolvedTasks],
+                ['Pending', pendingTasks],
+                ['Completion Rate', completionRate + '%'],
+                ['Total Resolved Qty', totalResolvedQty]
+            ];
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+
+            // Sheet 2: Details
+            const detailsHeader = ['Date', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Resolved Qty', 'Findings'];
+            const detailsData = [detailsHeader];
             filtered.forEach(t => {
                 const date = new Date(t.timestamp).toLocaleDateString();
-                csv += `"${date}","${t.sku}","${(t.desc||'').replace(/"/g, '""')}",${t.qty},"${t.reason}","${t.opsValidator||''}","${t.validator||''}","${t.status}","${t.resolvedQty||''}","${(t.findings||'').replace(/"/g, '""')}"\n`;
+                detailsData.push([date, t.sku, t.desc, t.qty, t.reason, t.opsValidator, t.validator, t.status, t.resolvedQty, t.findings]);
             });
-            downloadCSV(csv, 'validation_report.csv');
+            const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
+            XLSX.utils.book_append_sheet(wb, wsDetails, "Details");
+
+            // Sheet 3: Chart Data
+            const chartData = [['Status', 'Count']];
+            chartData.push(['Resolved', resolvedTasks]);
+            chartData.push(['Unresolved', unresolvedTasks]);
+            chartData.push(['Pending', pendingTasks]);
+            const wsChart = XLSX.utils.aoa_to_sheet(chartData);
+            XLSX.utils.book_append_sheet(wb, wsChart, "Chart Data");
+
+            XLSX.writeFile(wb, 'validation_report.xlsx');
         });
 
         // Section Toggle Logic
