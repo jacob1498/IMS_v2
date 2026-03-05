@@ -453,6 +453,15 @@
                     <label style="font-size:11px; display:block; font-weight:bold;">To</label>
                     <input type="date" id="rep-modal-end" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
                 </div>
+                <div style="text-align:left;">
+                    <label style="font-size:11px; display:block; font-weight:bold;">Shift</label>
+                    <select id="rep-modal-shift" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                        <option value="">All Shifts</option>
+                        <option value="1st Shift">1st Shift</option>
+                        <option value="2nd Shift">2nd Shift</option>
+                        <option value="3rd Shift">3rd Shift</option>
+                    </select>
+                </div>
             </div>
             <div style="display:grid; gap:10px;">
                 <button id="gen-cycle-count-report" class="icon-btn" style="justify-content:flex-start; padding:10px; width:100%;">Cycle Count Report (CSV)</button>
@@ -1690,6 +1699,7 @@
         const reportsModal = document.getElementById('analytics-reports-modal');
         const repModalStart = document.getElementById('rep-modal-start');
         const repModalEnd = document.getElementById('rep-modal-end');
+        const repModalShift = document.getElementById('rep-modal-shift');
 
         if(openReportsModalBtn){
             openReportsModalBtn.addEventListener('click', () => {
@@ -1697,6 +1707,7 @@
                 const mainEnd = document.getElementById('analytics-end').value;
                 if(mainStart) repModalStart.value = mainStart;
                 if(mainEnd) repModalEnd.value = mainEnd;
+                if(repModalShift) repModalShift.value = shiftInput.value;
                 reportsModal.classList.remove('hidden');
             });
         }
@@ -1718,7 +1729,7 @@
         document.getElementById('gen-cycle-count-report').addEventListener('click', () => {
             const startDate = repModalStart.value;
             const endDate = repModalEnd.value;
-            const shiftFilter = shiftInput.value;
+            const shiftFilter = repModalShift.value;
             const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
             const attendance = JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]');
             
@@ -1806,7 +1817,7 @@
         document.getElementById('gen-validation-report').addEventListener('click', () => {
             const startDate = repModalStart.value;
             const endDate = repModalEnd.value;
-            const shiftFilter = shiftInput.value;
+            const shiftFilter = repModalShift.value;
             const tasks = JSON.parse(localStorage.getItem('ims_validation_tasks_v1') || '[]');
             const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
             const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
