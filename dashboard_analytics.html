@@ -156,6 +156,7 @@
         <button id="clear-filter" class="icon-btn" style="border: 1px solid #ccc; padding: 6px 12px;">Clear</button>
         <button id="export-dashboard" class="icon-btn" style="background: #27ae60; color: white; padding: 6px 12px; margin-left: auto;">Export Excel</button>
         <button id="export-pdf" class="icon-btn" style="background: #e74c3c; color: white; padding: 6px 12px; margin-left: 10px;">Export PDF</button>
+        <button id="open-reports-modal" class="icon-btn" style="background: #8e44ad; color: white; padding: 6px 12px; margin-left: 10px;">Reports</button>
     </div>
 
     <!-- Attendance Section -->
@@ -425,6 +426,31 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Selection Modal -->
+    <div id="analytics-reports-modal" class="modal hidden" style="z-index: 10020;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content card" style="max-width: 400px; margin: 100px auto; text-align: center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0">Generate Reports</h3>
+                <button class="icon-btn close-modal">&times;</button>
+            </div>
+            <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center; justify-content:center; background:#f9f9f9; padding:10px; border-radius:4px;">
+                <div style="text-align:left;">
+                    <label style="font-size:11px; display:block; font-weight:bold;">From</label>
+                    <input type="date" id="rep-modal-start" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                </div>
+                <div style="text-align:left;">
+                    <label style="font-size:11px; display:block; font-weight:bold;">To</label>
+                    <input type="date" id="rep-modal-end" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                </div>
+            </div>
+            <div style="display:grid; gap:10px;">
+                <button id="gen-cycle-count-report" class="icon-btn" style="justify-content:flex-start; padding:10px; width:100%;">Cycle Count Report (CSV)</button>
+                <button id="gen-validation-report" class="icon-btn" style="justify-content:flex-start; padding:10px; width:100%;">Validation Report (CSV)</button>
             </div>
         </div>
     </div>
@@ -1605,6 +1631,121 @@
         if(document.getElementById('exclude-replen-all')) document.getElementById('exclude-replen-all').addEventListener('change', renderDashboard);
         document.getElementById('export-dashboard').addEventListener('click', exportDashboard);
         document.getElementById('export-pdf').addEventListener('click', exportToPDF);
+
+        // Reports Modal Logic
+        const openReportsModalBtn = document.getElementById('open-reports-modal');
+        const reportsModal = document.getElementById('analytics-reports-modal');
+        const repModalStart = document.getElementById('rep-modal-start');
+        const repModalEnd = document.getElementById('rep-modal-end');
+
+        if(openReportsModalBtn){
+            openReportsModalBtn.addEventListener('click', () => {
+                const mainStart = document.getElementById('analytics-start').value;
+                const mainEnd = document.getElementById('analytics-end').value;
+                if(mainStart) repModalStart.value = mainStart;
+                if(mainEnd) repModalEnd.value = mainEnd;
+                reportsModal.classList.remove('hidden');
+            });
+        }
+
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modal = e.target.closest('.modal');
+                if (modal) modal.classList.add('hidden');
+            });
+        });
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        document.getElementById('gen-cycle-count-report').addEventListener('click', () => {
+            const startDate = repModalStart.value;
+            const endDate = repModalEnd.value;
+            const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
+            const attendance = JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]');
+            
+            const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
+            const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
+
+            const filteredLogs = timestamps.filter(t => {
+                if(t.deleted) return false;
+                const d = new Date(t.timestamp);
+                return (!start || d >= start) && (!end || d <= end);
+            });
+
+            const userStats = {};
+            let totalPallets = 0; let totalSkus = 0; let totalDurationMinutes = 0;
+            const logsByUser = {};
+            filteredLogs.forEach(l => { if(!logsByUser[l.userId]) logsByUser[l.userId] = []; logsByUser[l.userId].push(l); });
+
+            Object.keys(logsByUser).forEach(uid => {
+                const logs = logsByUser[uid].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                if(!userStats[uid]) userStats[uid] = { userId: uid, name: uid, pallets: 0, skus: 0, duration: 0 };
+                const att = attendance.find(a => a.userId === uid);
+                if(att) userStats[uid].name = att.name;
+
+                let sessionStart = null; let breakStart = null; let breakDed = 0;
+                logs.forEach(l => {
+                    if(l.action === 'Start') { sessionStart = new Date(l.timestamp); breakDed = 0; }
+                    else if(l.action === 'Start Break') { breakStart = new Date(l.timestamp); }
+                    else if(l.action === 'End Break') { if(breakStart) { breakDed += (new Date(l.timestamp) - breakStart); breakStart = null; } }
+                    else if(l.action === 'End') {
+                        if(sessionStart) {
+                            const dur = (new Date(l.timestamp) - sessionStart) - breakDed;
+                            if(dur > 0) { userStats[uid].duration += dur; totalDurationMinutes += (dur / 60000); }
+                            sessionStart = null;
+                        }
+                        const p = parseInt(l.pallets) || 0; const s = parseInt(l.skus) || 0;
+                        userStats[uid].pallets += p; userStats[uid].skus += s;
+                        totalPallets += p; totalSkus += s;
+                    }
+                });
+            });
+
+            const totalCounters = Object.keys(userStats).length;
+            const totalHours = totalDurationMinutes / 60;
+            const avgSkuPerHr = totalHours > 0 ? (totalSkus / totalHours).toFixed(2) : 0;
+            const avgPalletPerHr = totalHours > 0 ? (totalPallets / totalHours).toFixed(2) : 0;
+
+            let csv = `Cycle Count Report\nPeriod: ${startDate || 'Start'} to ${endDate || 'End'}\n\nSummary\nTotal Counters,${totalCounters}\nTotal Pallets,${totalPallets}\nTotal SKUs,${totalSkus}\nTotal Hours,${totalHours.toFixed(2)}\nAvg SKU/Hr,${avgSkuPerHr}\nAvg Pallet/Hr,${avgPalletPerHr}\n\nCounter Details\nUser ID,Name,Pallets,SKUs,Hours,SKU/Hr,Pallet/Hr\n`;
+            
+            Object.values(userStats).forEach(u => {
+                const hrs = u.duration / 3600000;
+                const skuRate = hrs > 0 ? (u.skus / hrs).toFixed(2) : 0;
+                const palletRate = hrs > 0 ? (u.pallets / hrs).toFixed(2) : 0;
+                csv += `"${u.userId}","${u.name}",${u.pallets},${u.skus},${hrs.toFixed(2)},${skuRate},${palletRate}\n`;
+            });
+            downloadCSV(csv, 'cycle_count_report.csv');
+        });
+
+        document.getElementById('gen-validation-report').addEventListener('click', () => {
+            const startDate = repModalStart.value;
+            const endDate = repModalEnd.value;
+            const tasks = JSON.parse(localStorage.getItem('ims_validation_tasks_v1') || '[]');
+            const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
+            const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
+
+            const filtered = tasks.filter(t => { const d = new Date(t.timestamp); return (!start || d >= start) && (!end || d <= end); });
+            
+            const totalTasks = filtered.length;a
+            const resolvedTasks = filtered.filter(t => t.status === 'Completed').length;
+            const unresolvedTasks = filtered.filter(t => t.status === 'Unresolved').length;
+            const pendingTasks = filtered.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved').length;
+            const completionRate = totalTasks > 0 ? ((resolvedTasks / totalTasks) * 100).toFixed(2) : 0;
+            const totalResolvedQty = filtered.reduce((sum, t) => sum + (parseInt(t.resolvedQty) || 0), 0);
+
+            let csv = `Validation Report\nPeriod: ${startDate || 'Start'} to ${endDate || 'End'}\n\nSummary\nTotal Tasks,${totalTasks}\nResolved,${resolvedTasks}\nUnresolved,${unresolvedTasks}\nPending,${pendingTasks}\nCompletion Rate,${completionRate}%\nTotal Resolved Qty,${totalResolvedQty}\n\nTask Details\nDate,SKU,Description,Qty,Reason,Ops Validator,IC Validator,Status,Resolved Qty,Findings\n`;
+
+            filtered.forEach(t => {
+                const date = new Date(t.timestamp).toLocaleDateString();
+                csv += `"${date}","${t.sku}","${(t.desc||'').replace(/"/g, '""')}",${t.qty},"${t.reason}","${t.opsValidator||''}","${t.validator||''}","${t.status}","${t.resolvedQty||''}","${(t.findings||'').replace(/"/g, '""')}"\n`;
+            });
+            downloadCSV(csv, 'validation_report.csv');
+        });
 
         // Section Toggle Logic
         document.querySelectorAll('.toggle-section').forEach(btn => {
