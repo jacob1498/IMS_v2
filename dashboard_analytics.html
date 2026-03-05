@@ -1736,37 +1736,79 @@
             const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
             const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
 
-            const filteredLogs = timestamps.filter(t => {
-                if(t.deleted) return false;
-                const info = getShiftFromTimestamp(t.timestamp);
-                return (!start || info.date >= startDate) && (!end || info.date <= endDate) && (!shiftFilter || info.shift.includes(shiftFilter));
-            });
+            // Helper to check if a timestamp matches filters
+            const isMatch = (ts) => {
+                const info = getShiftFromTimestamp(ts);
+                return (!startDate || info.date >= startDate) && (!endDate || info.date <= endDate) && (!shiftFilter || info.shift.includes(shiftFilter));
+            };
 
             const userStats = {};
             let totalPallets = 0; let totalSkus = 0; let totalDurationMinutes = 0;
+            
+            // Group logs by user
             const logsByUser = {};
-            filteredLogs.forEach(l => { if(!logsByUser[l.userId]) logsByUser[l.userId] = []; logsByUser[l.userId].push(l); });
+            timestamps.forEach(l => { 
+                if(l.deleted) return;
+                if(!logsByUser[l.userId]) logsByUser[l.userId] = []; 
+                logsByUser[l.userId].push(l); 
+            });
 
             Object.keys(logsByUser).forEach(uid => {
+                // Sort logs chronologically
                 const logs = logsByUser[uid].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-                if(!userStats[uid]) userStats[uid] = { userId: uid, name: uid, pallets: 0, skus: 0, duration: 0 };
-                const att = attendance.find(a => a.userId === uid);
-                if(att) userStats[uid].name = att.name;
+                
+                let currentStart = null;
+                let currentBreaks = [];
+                let breakStart = null;
 
-                let sessionStart = null; let breakStart = null; let breakDed = 0;
                 logs.forEach(l => {
-                    if(l.action === 'Start') { sessionStart = new Date(l.timestamp); breakDed = 0; }
-                    else if(l.action === 'Start Break') { breakStart = new Date(l.timestamp); }
-                    else if(l.action === 'End Break') { if(breakStart) { breakDed += (new Date(l.timestamp) - breakStart); breakStart = null; } }
-                    else if(l.action === 'End') {
-                        if(sessionStart) {
-                            const dur = (new Date(l.timestamp) - sessionStart) - breakDed;
-                            if(dur > 0) { userStats[uid].duration += dur; totalDurationMinutes += (dur / 60000); }
-                            sessionStart = null;
+                    if (l.action === 'Start') {
+                        currentStart = l;
+                        currentBreaks = [];
+                        breakStart = null;
+                    } else if (l.action === 'Start Break') {
+                        breakStart = l;
+                    } else if (l.action === 'End Break') {
+                        if (breakStart) {
+                            currentBreaks.push({ start: breakStart, end: l });
+                            breakStart = null;
                         }
-                        const p = parseInt(l.pallets) || 0; const s = parseInt(l.skus) || 0;
-                        userStats[uid].pallets += p; userStats[uid].skus += s;
-                        totalPallets += p; totalSkus += s;
+                    } else if (l.action === 'End') {
+                        // Check if this session's End time falls within the requested report period
+                        if (isMatch(l.timestamp)) {
+                            if (!userStats[uid]) {
+                                const info = getShiftFromTimestamp(l.timestamp);
+                                const att = attendance.find(a => a.userId === uid && a.date === info.date) || attendance.find(a => a.userId === uid);
+                                userStats[uid] = { userId: uid, name: att ? att.name : uid, pallets: 0, skus: 0, duration: 0 };
+                            }
+                            
+                            const p = parseInt(l.pallets) || 0;
+                            const s = parseInt(l.skus) || 0;
+                            userStats[uid].pallets += p;
+                            userStats[uid].skus += s;
+                            totalPallets += p;
+                            totalSkus += s;
+
+                            if (currentStart) {
+                                let dur = new Date(l.timestamp) - new Date(currentStart.timestamp);
+                                // Deduct breaks within this session
+                                let breakDed = 0;
+                                currentBreaks.forEach(b => {
+                                    if (new Date(b.start.timestamp) >= new Date(currentStart.timestamp) && new Date(b.end.timestamp) <= new Date(l.timestamp)) {
+                                        breakDed += (new Date(b.end.timestamp) - new Date(b.start.timestamp));
+                                    }
+                                });
+                                dur -= breakDed;
+                                if (dur > 0) {
+                                    userStats[uid].duration += dur;
+                                    totalDurationMinutes += (dur / 60000);
+                                }
+                            }
+                        }
+                        // Reset session tracking
+                        currentStart = null;
+                        currentBreaks = [];
+                        breakStart = null;
                     }
                 });
             });
@@ -1850,11 +1892,17 @@
             XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
             // Sheet 2: Details
-            const detailsHeader = ['Date', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Resolved Qty', 'Findings'];
+            const detailsHeader = ['Date Time', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Resolved Qty', 'Findings', 'Duration (min)'];
             const detailsData = [detailsHeader];
             filtered.forEach(t => {
-                const date = new Date(t.timestamp).toLocaleDateString();
-                detailsData.push([date, t.sku, t.desc, t.qty, t.reason, t.opsValidator, t.validator, t.status, t.resolvedQty, t.findings]);
+                const dateTime = new Date(t.timestamp).toLocaleString();
+                let durationMins = '';
+                const endTime = t.completedAt || t.unresolvedAt;
+                if (endTime && t.timestamp) {
+                    const diffMs = new Date(endTime) - new Date(t.timestamp);
+                    durationMins = Math.round(diffMs / 60000);
+                }
+                detailsData.push([dateTime, t.sku, t.desc, t.qty, t.reason, t.opsValidator, t.validator, t.status, t.resolvedQty, t.findings, durationMins]);
             });
             const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
             XLSX.utils.book_append_sheet(wb, wsDetails, "Details");
