@@ -163,6 +163,7 @@
         <button id="export-dashboard" class="icon-btn" style="background: #27ae60; color: white; padding: 6px 12px; margin-left: auto;">Export Excel</button>
         <button id="export-pdf" class="icon-btn" style="background: #e74c3c; color: white; padding: 6px 12px; margin-left: 10px;">Export PDF</button>
         <button id="open-reports-modal" class="icon-btn" style="background: #8e44ad; color: white; padding: 6px 12px; margin-left: 10px;">Reports</button>
+        <button id="email-settings-btn" class="icon-btn" style="background: #34495e; color: white; padding: 6px 12px; margin-left: 10px;">Email Settings</button>
     </div>
 
     <!-- Attendance Section -->
@@ -440,7 +441,7 @@
     <div id="analytics-reports-modal" class="modal hidden" style="z-index: 10020;">
         <div class="modal-overlay"></div>
         <div class="modal-content card" style="max-width: 400px; margin: 100px auto; text-align: center;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <h3 style="margin:0">Generate Reports</h3>
                 <button class="icon-btn close-modal">&times;</button>
             </div>
@@ -464,8 +465,18 @@
                 </div>
             </div>
             <div style="display:grid; gap:10px;">
-                <button id="gen-cycle-count-report" class="icon-btn" style="justify-content:flex-start; padding:10px; width:100%;">Cycle Count Report (CSV)</button>
-                <button id="gen-validation-report" class="icon-btn" style="justify-content:flex-start; padding:10px; width:100%;">Validation Report (CSV)</button>
+                <button id="gen-attendance-report" class="icon-btn" style="justify-content:flex-start; padding:12px; width:100%; background:#fff; border:1px solid #eee; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; width:18px; height:18px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Attendance Report (XLSX)
+                </button>
+                <button id="gen-cycle-count-report" class="icon-btn" style="justify-content:flex-start; padding:12px; width:100%; background:#fff; border:1px solid #eee; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; width:18px; height:18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Cycle Count Report (CSV)
+                </button>
+                <button id="gen-validation-report" class="icon-btn" style="justify-content:flex-start; padding:12px; width:100%; background:#fff; border:1px solid #eee; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; width:18px; height:18px;"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Validation Report (CSV)
+                </button>
             </div>
         </div>
     </div>
@@ -480,6 +491,29 @@
             </div>
             <div style="flex:1; position:relative; min-height:0;">
                 <canvas id="full-chart-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings Modal -->
+    <div id="email-settings-modal" class="modal hidden" style="z-index: 10030;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content card" style="max-width: 400px; margin: 100px auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0">Daily Report Email Settings</h3>
+                <button class="icon-btn close-modal">&times;</button>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Recipients (comma separated):</label>
+                <textarea id="email-recipients" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="email1@example.com, email2@example.com"></textarea>
+            </div>
+            <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="email-auto-enable" style="width:auto;">
+                <label for="email-auto-enable" style="margin:0; cursor:pointer;">Enable Auto-Email at 9:00 AM</label>
+            </div>
+            <p style="font-size:11px; color:#666; font-style:italic;">Note: This feature requires this dashboard to be open in a browser tab at 9:00 AM. It will open your default email client with a summary of yesterday's data.</p>
+            <div style="text-align:right;">
+                <button id="save-email-settings" class="icon-btn" style="background:#2752a7; color:white; padding:8px 16px;">Save Settings</button>
             </div>
         </div>
     </div>
@@ -537,6 +571,17 @@
                 }
             }
             return { date: dateStr, shift };
+        }
+
+        function getDuration(start, end) {
+            if (!start || !end) return '-';
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            let minutes = (h2 * 60 + m2) - (h1 * 60 + m1);
+            if (minutes < 0) minutes += 24 * 60;
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return (h > 0 ? h + 'h ' : '') + m + 'm';
         }
 
         // Global variable for full chart instance
@@ -1656,7 +1701,11 @@
             const wsTask = XLSX.utils.aoa_to_sheet(taskRows);
             XLSX.utils.book_append_sheet(wb, wsTask, "Daily Task Trend");
 
-            XLSX.writeFile(wb, `Dashboard_Analytics_${new Date().toISOString().split('T')[0]}.xlsx`);
+            const datePart = start ? start : new Date().toISOString().split('T')[0];
+            const shiftPart = shiftFilter ? `_${shiftFilter.replace(/ /g, '_')}` : '';
+            const filename = `Dashboard_Analytics_${datePart}${shiftPart}.xlsx`;
+
+            XLSX.writeFile(wb, filename);
         }
 
         async function exportToPDF() {
@@ -1731,7 +1780,28 @@
             const endDate = repModalEnd.value;
             const shiftFilter = repModalShift.value;
             const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
-            const attendance = JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]');
+            
+            // Metadata & Filename
+            const dateLabel = (startDate && endDate && startDate !== endDate) ? `${startDate} to ${endDate}` : (startDate || 'All Dates');
+            const shiftLabel = shiftFilter || 'All Shifts';
+            const metaRows = [
+                [`Date: ${dateLabel}`],
+                [`Shift: ${shiftLabel}`],
+                [`Generated: ${new Date().toLocaleString()}`]
+            ];
+            
+            let fnDate = 'All Dates';
+            if(startDate) {
+                fnDate = new Date(startDate).toLocaleDateString('en-US', {month:'long', day:'numeric'});
+                if(endDate && endDate !== startDate) fnDate += ` - ${new Date(endDate).toLocaleDateString('en-US', {month:'long', day:'numeric'})}`;
+            }
+            const fnShift = shiftFilter ? shiftFilter.split('-')[0].trim() : 'All Shifts';
+            const fileName = `Cycle Count Report ${fnDate} ${fnShift}.xlsx`;
+
+            const attendance = [
+                ...JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]'),
+                ...JSON.parse(localStorage.getItem('ims_daily_counters_attendance_v1') || '[]')
+            ];
             
             const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
             const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
@@ -1822,6 +1892,7 @@
             
             // Sheet 1: Summary
             const summaryData = [
+                ...metaRows,
                 ['Metric', 'Value'],
                 ['Total Counters', totalCounters],
                 ['Total Pallets', totalPallets],
@@ -1853,13 +1924,156 @@
             const wsChart = XLSX.utils.aoa_to_sheet(chartData);
             XLSX.utils.book_append_sheet(wb, wsChart, "Chart Data");
 
-            XLSX.writeFile(wb, 'cycle_count_report.xlsx');
+            // New Sheet: Target vs Actual
+            const counters = JSON.parse(localStorage.getItem('ims_daily_counters_v1') || '[]');
+            const filteredCounters = counters.filter(c => {
+                return (!startDate || c.date >= startDate) && (!endDate || c.date <= endDate) && (!shiftFilter || c.shift.includes(shiftFilter));
+            });
+
+            const hourlyStats = {};
+            // Initialize hours 6am to 6am to maintain order
+            for (let i = 0; i < 24; i++) {
+                const h = (6 + i) % 24;
+                const label = `${h}:00 - ${h+1}:00`;
+                hourlyStats[label] = { actual: 0, target: 0 };
+            }
+
+            filteredCounters.forEach(c => {
+                if (c.hourlyActuals) {
+                    Object.entries(c.hourlyActuals).forEach(([hour, value]) => {
+                        if (hourlyStats[hour]) hourlyStats[hour].actual += (Number(value) || 0);
+                    });
+                }
+                if (c.hourlyTargets) {
+                    Object.entries(c.hourlyTargets).forEach(([hour, value]) => {
+                        if (hourlyStats[hour]) hourlyStats[hour].target += (Number(value) || 0);
+                    });
+                }
+            });
+
+            const perfSheetData = [['Hour', 'Target', 'Actual', 'Variance']];
+            let totalTarget = 0, totalActual = 0;
+            Object.entries(hourlyStats).forEach(([hour, stats]) => {
+                if (stats.target > 0 || stats.actual > 0) { // Only show hours with data
+                    const variance = stats.actual - stats.target;
+                    perfSheetData.push([hour, stats.target, stats.actual, variance]);
+                    totalTarget += stats.target;
+                    totalActual += stats.actual;
+                }
+            });
+            perfSheetData.push(['Total', totalTarget, totalActual, totalActual - totalTarget]);
+            const wsPerf = XLSX.utils.aoa_to_sheet(perfSheetData);
+            XLSX.utils.book_append_sheet(wb, wsPerf, "Target vs Actual");
+
+            // New Sheet: Performance Ranking
+            const rankingData = [['Rank', 'Name', 'User ID', 'Total SKUs', 'Total Pallets', 'Total Hours', 'SKU/Hr']];
+            const sortedUsers = Object.values(userStats).sort((a, b) => b.skus - a.skus);
+            
+            sortedUsers.forEach((u, index) => {
+                const hrs = u.duration / 3600000;
+                const skuRate = hrs > 0 ? (u.skus / hrs).toFixed(2) : 0;
+                rankingData.push([index + 1, u.name, u.userId, u.skus, u.pallets, parseFloat(hrs.toFixed(2)), parseFloat(skuRate)]);
+            });
+            const wsRanking = XLSX.utils.aoa_to_sheet(rankingData);
+            XLSX.utils.book_append_sheet(wb, wsRanking, "Performance Ranking");
+
+            XLSX.writeFile(wb, fileName);
+        });
+
+        document.getElementById('gen-attendance-report').addEventListener('click', () => {
+             window.showLoading();
+             setTimeout(() => {
+                const startDate = repModalStart.value;
+                const endDate = repModalEnd.value;
+                const shiftFilter = repModalShift.value;
+                const { attendance } = getData();
+
+                // Metadata & Filename
+                const dateLabel = (startDate && endDate && startDate !== endDate) ? `${startDate} to ${endDate}` : (startDate || 'All Dates');
+                const shiftLabel = shiftFilter || 'All Shifts';
+                const metaRows = [
+                    [`Date: ${dateLabel}`],
+                    [`Shift: ${shiftLabel}`],
+                    [`Generated: ${new Date().toLocaleString()}`]
+                ];
+                
+                let fnDate = 'All Dates';
+                if(startDate) {
+                    fnDate = new Date(startDate).toLocaleDateString('en-US', {month:'long', day:'numeric'});
+                    if(endDate && endDate !== startDate) fnDate += ` - ${new Date(endDate).toLocaleDateString('en-US', {month:'long', day:'numeric'})}`;
+                }
+                const fnShift = shiftFilter ? shiftFilter.split('-')[0].trim() : 'All Shifts';
+                const fileName = `Attendance Report ${fnDate} ${fnShift}.xlsx`;
+
+                const filtered = attendance.filter(a => 
+                    (!startDate || a.date >= startDate) && 
+                    (!endDate || a.date <= endDate) && 
+                    (!shiftFilter || a.shift.includes(shiftFilter))
+                );
+
+                if (filtered.length === 0) {
+                    alert('No attendance data found for the selected criteria.');
+                    window.hideLoading();
+                    return;
+                }
+
+                const wb = XLSX.utils.book_new();
+
+                // Sheet 1: Details
+                const detailsHeader = ['Date', 'User ID', 'Shift', 'Name', 'Role', 'Job Description', 'Time In', 'Break Out', 'Break In', 'Time Out', 'Duration', 'Status', 'Notes'];
+                const detailsData = [detailsHeader];
+                
+                filtered.sort((a,b) => new Date(a.date) - new Date(b.date) || a.shift.localeCompare(b.shift) || a.name.localeCompare(b.name));
+
+                filtered.forEach(item => {
+                    const dur = getDuration(item.breakOut, item.breakIn);
+                    detailsData.push([item.date, item.userId || '', item.shift || '', item.name || '', item.role || '', item.jobDescription || item.area || '', item.timeIn || '', item.breakOut || '', item.breakIn || '', item.timeOut || '', dur, item.status || '', item.notes || '']);
+                });
+                const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
+                XLSX.utils.book_append_sheet(wb, wsDetails, "Attendance Details");
+
+                // Sheet 2: Summary
+                const userCounts = {};
+                filtered.forEach(a => {
+                    const uid = a.userId || 'Unknown';
+                    if (!userCounts[uid]) userCounts[uid] = { name: a.name || 'Unknown', count: 0 };
+                    userCounts[uid].count++;
+                });
+                const totalTimeIns = filtered.length;
+                const totalUniqueUsers = Object.keys(userCounts).length;
+                const summaryData = [...metaRows, ['Metric', 'Value'], ['Total Unique Users', totalUniqueUsers], ['Total Time-ins (Records)', totalTimeIns]];
+                const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+
+                XLSX.writeFile(wb, fileName);
+                
+                reportsModal.classList.add('hidden');
+                window.hideLoading();
+             }, 100);
         });
 
         document.getElementById('gen-validation-report').addEventListener('click', () => {
             const startDate = repModalStart.value;
             const endDate = repModalEnd.value;
             const shiftFilter = repModalShift.value;
+
+            // Metadata & Filename
+            const dateLabel = (startDate && endDate && startDate !== endDate) ? `${startDate} to ${endDate}` : (startDate || 'All Dates');
+            const shiftLabel = shiftFilter || 'All Shifts';
+            const metaRows = [
+                [`Date: ${dateLabel}`],
+                [`Shift: ${shiftLabel}`],
+                [`Generated: ${new Date().toLocaleString()}`]
+            ];
+            
+            let fnDate = 'All Dates';
+            if(startDate) {
+                fnDate = new Date(startDate).toLocaleDateString('en-US', {month:'long', day:'numeric'});
+                if(endDate && endDate !== startDate) fnDate += ` - ${new Date(endDate).toLocaleDateString('en-US', {month:'long', day:'numeric'})}`;
+            }
+            const fnShift = shiftFilter ? shiftFilter.split('-')[0].trim() : 'All Shifts';
+            const fileName = `Validation Report ${fnDate} ${fnShift}.xlsx`;
+
             const tasks = JSON.parse(localStorage.getItem('ims_validation_tasks_v1') || '[]');
             const start = startDate ? new Date(startDate) : null; if(start) start.setHours(0,0,0,0);
             const end = endDate ? new Date(endDate) : null; if(end) end.setHours(23,59,59,999);
@@ -1880,6 +2094,7 @@
 
             // Sheet 1: Summary
             const summaryData = [
+                ...metaRows,
                 ['Metric', 'Value'],
                 ['Total Tasks', totalTasks],
                 ['Resolved', resolvedTasks],
@@ -1892,31 +2107,150 @@
             XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
             // Sheet 2: Details
-            const detailsHeader = ['Date Time', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Resolved Qty', 'Findings', 'Duration (min)'];
+            const detailsHeader = ['Date Time', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Completed At', 'Resolved Qty', 'Findings', 'Duration (min)'];
             const detailsData = [detailsHeader];
             filtered.forEach(t => {
                 const dateTime = new Date(t.timestamp).toLocaleString();
+                const completedAt = t.completedAt ? (() => {
+                    const d = new Date(t.completedAt);
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const hours = String(d.getHours()).padStart(2, '0');
+                    const minutes = String(d.getMinutes()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}`;
+                })() : '';
                 let durationMins = '';
                 const endTime = t.completedAt || t.unresolvedAt;
                 if (endTime && t.timestamp) {
                     const diffMs = new Date(endTime) - new Date(t.timestamp);
                     durationMins = Math.round(diffMs / 60000);
                 }
-                detailsData.push([dateTime, t.sku, t.desc, t.qty, t.reason, t.opsValidator, t.validator, t.status, t.resolvedQty, t.findings, durationMins]);
+                detailsData.push([dateTime, t.sku, t.desc, t.qty, t.reason, t.opsValidator, t.validator, t.status, completedAt, t.resolvedQty, t.findings, durationMins]);
             });
             const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
             XLSX.utils.book_append_sheet(wb, wsDetails, "Details");
 
-            // Sheet 3: Chart Data
-            const chartData = [['Status', 'Count']];
-            chartData.push(['Resolved', resolvedTasks]);
-            chartData.push(['Unresolved', unresolvedTasks]);
-            chartData.push(['Pending', pendingTasks]);
-            const wsChart = XLSX.utils.aoa_to_sheet(chartData);
-            XLSX.utils.book_append_sheet(wb, wsChart, "Chart Data");
+            // Sheet 3: Resolved
+            const resolvedRows = detailsData.filter((row, index) => index === 0 || row[7] === 'Completed');
+            const wsResolved = XLSX.utils.aoa_to_sheet(resolvedRows);
+            XLSX.utils.book_append_sheet(wb, wsResolved, "Resolved");
 
-            XLSX.writeFile(wb, 'validation_report.xlsx');
+            // Sheet 4: Unresolved
+            const unresolvedRows = detailsData.filter((row, index) => index === 0 || row[7] === 'Unresolved');
+            const wsUnresolved = XLSX.utils.aoa_to_sheet(unresolvedRows);
+            XLSX.utils.book_append_sheet(wb, wsUnresolved, "Unresolved");
+
+            // New Feature: Average Resolution Time per Validator
+            const validatorPerf = {};
+            filtered.forEach(t => {
+                if (t.status === 'Completed' && t.validator && t.timestamp && t.completedAt) {
+                    if (!validatorPerf[t.validator]) {
+                        validatorPerf[t.validator] = { totalDuration: 0, count: 0 };
+                    }
+                    const duration = (new Date(t.completedAt) - new Date(t.timestamp)) / 60000; // in minutes
+                    if (duration >= 0) {
+                        validatorPerf[t.validator].totalDuration += duration;
+                        validatorPerf[t.validator].count++;
+                    }
+                }
+            });
+
+            const perfData = [['Validator', 'Resolved Tasks', 'Avg. Resolution Time (min)']];
+            Object.entries(validatorPerf).sort((a,b) => b[1].count - a[1].count).forEach(([validator, stats]) => {
+                const avgTime = stats.count > 0 ? (stats.totalDuration / stats.count).toFixed(2) : 0;
+                perfData.push([validator, stats.count, parseFloat(avgTime)]);
+            });
+            const wsPerf = XLSX.utils.aoa_to_sheet(perfData);
+            XLSX.utils.book_append_sheet(wb, wsPerf, "Validator Performance");
+
+            // Sheet 6: Ops Validator Ranking
+            const opsValidatorStats = {};
+            filtered.forEach(t => {
+                if (t.status === 'Completed' && t.opsValidator) {
+                    opsValidatorStats[t.opsValidator] = (opsValidatorStats[t.opsValidator] || 0) + 1;
+                }
+            });
+            const opsPerfData = [...metaRows, ['Ops Validator', 'Resolved Tasks']];
+            Object.entries(opsValidatorStats).sort((a,b) => b[1] - a[1]).forEach(([name, count]) => {
+                opsPerfData.push([name, count]);
+            });
+            const wsOpsPerf = XLSX.utils.aoa_to_sheet(opsPerfData);
+            XLSX.utils.book_append_sheet(wb, wsOpsPerf, "Ops Validator Ranking");
+
+            XLSX.writeFile(wb, fileName);
         });
+
+        // Email Settings Logic
+        const emailSettingsBtn = document.getElementById('email-settings-btn');
+        const emailSettingsModal = document.getElementById('email-settings-modal');
+        const saveEmailSettingsBtn = document.getElementById('save-email-settings');
+        const emailRecipientsInput = document.getElementById('email-recipients');
+        const emailAutoEnableInput = document.getElementById('email-auto-enable');
+
+        if(emailSettingsBtn) {
+            emailSettingsBtn.addEventListener('click', () => {
+                const settings = JSON.parse(localStorage.getItem('ims_email_settings_v1') || '{}');
+                emailRecipientsInput.value = settings.recipients || '';
+                emailAutoEnableInput.checked = settings.enabled || false;
+                emailSettingsModal.classList.remove('hidden');
+            });
+        }
+
+        if(saveEmailSettingsBtn) {
+            saveEmailSettingsBtn.addEventListener('click', () => {
+                const settings = {
+                    recipients: emailRecipientsInput.value.trim(),
+                    enabled: emailAutoEnableInput.checked
+                };
+                localStorage.setItem('ims_email_settings_v1', JSON.stringify(settings));
+                emailSettingsModal.classList.add('hidden');
+                alert('Email settings saved.');
+            });
+        }
+
+        function sendDailyReportEmail(recipients) {
+            const now = new Date();
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const dateStr = yesterday.toISOString().split('T')[0];
+            
+            const { attendance, tasks, counters } = getData();
+            
+            const att = attendance.filter(a => a.date === dateStr);
+            const totalAtt = att.length;
+            
+            let totalOutput = 0;
+            const cnt = counters.filter(c => c.date === dateStr);
+            cnt.forEach(c => {
+                if (c.hourlyActuals) totalOutput += Object.values(c.hourlyActuals).reduce((a,b) => a + (Number(b)||0), 0);
+            });
+            
+            const tsk = tasks.filter(t => getShiftFromTimestamp(t.timestamp).date === dateStr);
+            const totalTasks = tsk.length;
+            const resolvedTasks = tsk.filter(t => t.status === 'Completed').length;
+            const unresolvedTasks = tsk.filter(t => t.status === 'Unresolved').length;
+            
+            const subject = `IMS Daily Report - ${dateStr}`;
+            let body = `Daily Report for ${dateStr}\n\n--- Attendance ---\nTotal Headcount: ${totalAtt}\n\n--- Cycle Count ---\nTotal Items Counted: ${totalOutput}\n\n--- Validation Tasks ---\nTotal Tasks: ${totalTasks}\nResolved: ${resolvedTasks}\nUnresolved: ${unresolvedTasks}\n\nGenerated by IMS Dashboard.`;
+            
+            window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        setInterval(() => {
+            const settings = JSON.parse(localStorage.getItem('ims_email_settings_v1') || '{}');
+            if (!settings.enabled || !settings.recipients) return;
+
+            const now = new Date();
+            if (now.getHours() === 9 && now.getMinutes() === 0) {
+                const todayStr = now.toISOString().split('T')[0];
+                const lastSent = localStorage.getItem('ims_last_auto_email_date');
+                if (lastSent !== todayStr) {
+                    sendDailyReportEmail(settings.recipients);
+                    localStorage.setItem('ims_last_auto_email_date', todayStr);
+                }
+            }
+        }, 60000);
 
         // Section Toggle Logic
         document.querySelectorAll('.toggle-section').forEach(btn => {
