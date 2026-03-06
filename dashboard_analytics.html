@@ -1824,6 +1824,7 @@
 
             const userStats = {};
             let totalPallets = 0; let totalSkus = 0; let totalDurationMinutes = 0;
+            let totalPickSkus = 0; let totalReservedSkus = 0;
             
             // Group logs by user
             const logsByUser = {};
@@ -1859,13 +1860,24 @@
                             if (!userStats[uid]) {
                                 const info = getShiftFromTimestamp(l.timestamp);
                                 const att = attendance.find(a => a.userId === uid && a.date === info.date) || attendance.find(a => a.userId === uid);
-                                userStats[uid] = { userId: uid, name: att ? att.name : uid, pallets: 0, skus: 0, duration: 0 };
+                                userStats[uid] = { userId: uid, name: att ? att.name : uid, pallets: 0, skus: 0, duration: 0, pickSkus: 0, reservedSkus: 0 };
                             }
                             
                             const p = parseInt(l.pallets) || 0;
                             const s = parseInt(l.skus) || 0;
                             userStats[uid].pallets += p;
                             userStats[uid].skus += s;
+
+                            // New logic for pick/reserved breakdown
+                            const areaType = currentStart ? currentStart.areaType : '';
+                            if (areaType && areaType.includes('Pick Bin')) {
+                                userStats[uid].pickSkus += s;
+                                totalPickSkus += s;
+                            } else { // Assume Reserved if not Pick
+                                userStats[uid].reservedSkus += s;
+                                totalReservedSkus += s;
+                            }
+
                             totalPallets += p;
                             totalSkus += s;
 
@@ -1897,6 +1909,8 @@
             const totalHours = totalDurationMinutes / 60;
             const avgSkuPerHr = totalHours > 0 ? (totalSkus / totalHours).toFixed(2) : 0;
             const avgPalletPerHr = totalHours > 0 ? (totalPallets / totalHours).toFixed(2) : 0;
+            const avgPickSkuPerHr = totalHours > 0 ? (totalPickSkus / totalHours).toFixed(2) : 0;
+            const avgReservedSkuPerHr = totalHours > 0 ? (totalReservedSkus / totalHours).toFixed(2) : 0;
 
             const wb = XLSX.utils.book_new();
             
@@ -1907,21 +1921,25 @@
                 ['Total Counters', totalCounters],
                 ['Total Pallets', totalPallets],
                 ['Total SKUs', totalSkus],
+                ['Total Pick Bin SKUs', totalPickSkus],
+                ['Total Reserved Bin SKUs', totalReservedSkus],
                 ['Total Hours', totalHours.toFixed(2)],
-                ['Avg SKU/Hr', avgSkuPerHr],
-                ['Avg Pallet/Hr', avgPalletPerHr]
+                ['Avg SKU/Hr (Overall)', avgSkuPerHr],
+                ['Avg Pallet/Hr', avgPalletPerHr],
+                ['Avg Pick Bin SKU/Hr', avgPickSkuPerHr],
+                ['Avg Reserved Bin SKU/Hr', avgReservedSkuPerHr]
             ];
             const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
             XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
             // Sheet 2: Details
-            const detailsHeader = ['User ID', 'Name', 'Pallets', 'SKUs', 'Hours', 'SKU/Hr', 'Pallet/Hr'];
+            const detailsHeader = ['User ID', 'Name', 'Pallets', 'SKUs', 'Pick Bin SKUs', 'Reserved Bin SKUs', 'Hours', 'SKU/Hr', 'Pallet/Hr'];
             const detailsData = [detailsHeader];
             Object.values(userStats).forEach(u => {
                 const hrs = u.duration / 3600000;
                 const skuRate = hrs > 0 ? (u.skus / hrs).toFixed(2) : 0;
                 const palletRate = hrs > 0 ? (u.pallets / hrs).toFixed(2) : 0;
-                detailsData.push([u.userId, u.name, u.pallets, u.skus, parseFloat(hrs.toFixed(2)), parseFloat(skuRate), parseFloat(palletRate)]);
+                detailsData.push([u.userId, u.name, u.pallets, u.skus, u.pickSkus, u.reservedSkus, parseFloat(hrs.toFixed(2)), parseFloat(skuRate), parseFloat(palletRate)]);
             });
             const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
             XLSX.utils.book_append_sheet(wb, wsDetails, "Details");
