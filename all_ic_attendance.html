@@ -7669,6 +7669,29 @@
                     if (typeof XLSX === 'undefined') { alert('SheetJS library not loaded.'); window.hideLoading(); return; }
 
                     const wb = XLSX.utils.book_new();
+
+                    // Summary Sheet
+                    const total = tasks.length;
+                    const resolvedCount = tasks.filter(t => t.status === 'Completed').length;
+                    const unresolvedCount = tasks.filter(t => t.status === 'Unresolved').length;
+                    const allActive = tasks.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved' && t.status !== 'Reassigned');
+                    const assignedCount = allActive.filter(t => t.validator && t.validator !== 'Unassigned').length;
+                    const pendingCount = allActive.length - assignedCount;
+                    const completionRate = total > 0 ? Math.round(((resolvedCount + unresolvedCount) / total) * 100) : 0;
+                    const shiftFilter = document.getElementById('val-view-shift').value || 'All Shifts';
+
+                    const summaryData = [
+                        ['Summary Report'],
+                        [`Date Range: ${startStr || 'All'} to ${endStr || 'All'}`, `Shift: ${shiftFilter}`],
+                        [`Generated: ${new Date().toLocaleString()}`],
+                        [],
+                        ['Metric', 'Count'],
+                        ['Total Tasks', total], ['Resolved', resolvedCount], ['Unresolved', unresolvedCount],
+                        ['Assigned', assignedCount], ['Pending', pendingCount], ['Completion Rate', `${completionRate}%`]
+                    ];
+                    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+
                     const groups = { 'Pending': [], 'Assigned': [], 'Resolved': [], 'Unresolved': [], 'Reassigned': [] };
 
                     tasks.forEach(t => {
@@ -7683,25 +7706,36 @@
 
                     Object.keys(groups).forEach(status => {
                         if (groups[status].length === 0) return;
-                        const rows = groups[status].map(t => ({
-                            'Date': new Date(t.timestamp).toLocaleString(),
-                            'SKU': t.sku, 'Description': t.desc, 'Qty': t.qty, 'Reason': t.reason,
-                            'Priority': t.priority || 'Normal', 'Ops Validator': t.opsValidator || '', 'IC Validator': t.validator || '',
-                            'Status': t.status,
-                            'Completed At': t.completedAt ? (() => {
-                                const d = new Date(t.completedAt);
-                                const year = d.getFullYear();
-                                const month = String(d.getMonth() + 1).padStart(2, '0');
-                                const day = String(d.getDate()).padStart(2, '0');
-                                const hours = String(d.getHours()).padStart(2, '0');
-                                const minutes = String(d.getMinutes()).padStart(2, '0');
-                                return `${year}-${month}-${day} ${hours}:${minutes}`;
-                            })() : '',
-                            'Unresolved At': t.unresolvedAt ? new Date(t.unresolvedAt).toLocaleString() : '',
-                            'Reassigned To': t.reassignedTo || '',
-                            'Findings': t.findings || '',
-                            'Resolved Qty': t.resolvedQty || ''
-                        }));
+                        const rows = groups[status].map(t => {
+                            let durationMins = '';
+                            const endTime = t.completedAt || t.unresolvedAt;
+                            if (endTime && t.timestamp) {
+                                const diffMs = new Date(endTime) - new Date(t.timestamp);
+                                durationMins = Math.round(diffMs / 60000);
+                            } else if (t.status === 'Pending' && t.timestamp) {
+                                const diffMs = new Date() - new Date(t.timestamp);
+                                durationMins = `Active for ${Math.round(diffMs / 60000)} mins`;
+                            }
+
+                            return {
+                                'Date': new Date(t.timestamp).toLocaleString(),
+                                'SKU': t.sku, 'Description': t.desc, 'Qty': t.qty, 'Reason': t.reason,
+                                'Priority': t.priority || 'Normal', 'Ops Validator': t.opsValidator || '', 'IC Validator': t.validator || '',
+                                'Status': t.status,
+                                'Completed At': t.completedAt ? (() => {
+                                    const d = new Date(t.completedAt);
+                                    const year = d.getFullYear();
+                                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                                    const day = String(d.getDate()).padStart(2, '0');
+                                    const hours = String(d.getHours()).padStart(2, '0');
+                                    const minutes = String(d.getMinutes()).padStart(2, '0');
+                                    return `${year}-${month}-${day} ${hours}:${minutes}`;
+                                })() : '',
+                                'Unresolved At': t.unresolvedAt ? new Date(t.unresolvedAt).toLocaleString() : '',
+                                'Reassigned To': t.reassignedTo || '', 'Findings': t.findings || '', 'Resolved Qty': t.resolvedQty || '',
+                                'Duration (min)': durationMins
+                            };
+                        });
                         const ws = XLSX.utils.json_to_sheet(rows);
                         XLSX.utils.book_append_sheet(wb, ws, status);
                     });
