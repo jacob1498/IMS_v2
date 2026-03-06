@@ -77,6 +77,20 @@
 
     body.dark-mode .chart-card, body.dark-mode .stat-card { background: #1e1e1e; border-color: #333; }
     body.dark-mode .top-list li { border-bottom-color: #333; color: #e0e0e0; }
+
+    /* KPI Table Styles */
+    .kpi-table-container { overflow-x: auto; margin-bottom: 20px; border: 1px solid #ccc; }
+    .kpi-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    .kpi-table th, .kpi-table td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+    .kpi-table th { background-color: #f0f0f0; font-weight: bold; position: sticky; left: 0; z-index: 2; }
+    .kpi-table td:nth-child(1), .kpi-table td:nth-child(2) { position: sticky; left: 0; background-color: #fff; z-index: 1; }
+    .kpi-table td:nth-child(2) { left: 80px; } /* Adjust based on Area column width */
+    
+    body.dark-mode .kpi-table th { background-color: #2c2c2c; border-color: #444; color: #e0e0e0; }
+    body.dark-mode .kpi-table td { border-color: #444; color: #e0e0e0; background-color: #1e1e1e; }
+    body.dark-mode .kpi-table td:nth-child(1), body.dark-mode .kpi-table td:nth-child(2) { background-color: #1e1e1e; }
+
+    .col-hidden { display: none; }
   </style>
 </head>
 <body class="inventory-mode">
@@ -164,6 +178,7 @@
         <button id="export-pdf" class="icon-btn" style="background: #e74c3c; color: white; padding: 6px 12px; margin-left: 10px;">Export PDF</button>
         <button id="open-reports-modal" class="icon-btn" style="background: #8e44ad; color: white; padding: 6px 12px; margin-left: 10px;">Reports</button>
         <button id="email-settings-btn" class="icon-btn" style="background: #34495e; color: white; padding: 6px 12px; margin-left: 10px;">Email Settings</button>
+        <button id="kpi-btn" class="icon-btn" style="background: #f39c12; color: white; padding: 6px 12px; margin-left: 10px;">KPI</button>
     </div>
 
     <!-- Attendance Section -->
@@ -524,6 +539,39 @@
             <div style="text-align:right; display:flex; justify-content:flex-end; gap:10px;">
                 <button id="test-email-btn" class="icon-btn" style="background:#6c757d; color:white; padding:8px 16px;">Test Email</button>
                 <button id="save-email-settings" class="icon-btn" style="background:#2752a7; color:white; padding:8px 16px;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Modal -->
+    <div id="kpi-modal" class="modal hidden" style="z-index: 10050;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content card" style="width: 95%; max-width: 1400px; height: 90vh; display:flex; flex-direction:column; margin: 30px auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0">KPI Dashboard</h3>
+                <button class="icon-btn close-modal">&times;</button>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; flex-wrap:wrap; background:#f9f9f9; padding:10px; border-radius:4px;">
+                <label style="font-weight:bold; font-size:12px;">Date Range:</label>
+                <input type="date" id="kpi-start-date" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+                <span>to</span>
+                <input type="date" id="kpi-end-date" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+                <button id="kpi-apply-btn" class="icon-btn" style="background:#2752a7; color:white; padding:4px 12px; font-size:12px;">Apply</button>
+                
+                <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:12px; font-weight:bold;">Show Columns:</span>
+                    <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-target" class="kpi-col-toggle" checked> Target/Hr</label>
+                    <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-ave" class="kpi-col-toggle" checked> Ave.Prod</label>
+                    <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-part" class="kpi-col-toggle" checked> Particulars</label>
+                </div>
+            </div>
+            
+            <div style="flex:1; overflow-y:auto; padding-right:5px;">
+                <h4 style="margin-top:0; color:#2752a7;">Table 1: Reserved Bin</h4>
+                <div id="kpi-reserved-container" class="kpi-table-container"></div>
+                
+                <h4 style="color:#2752a7;">Table 2: Pick Bin</h4>
+                <div id="kpi-pick-container" class="kpi-table-container"></div>
             </div>
         </div>
     </div>
@@ -1638,6 +1686,10 @@
 
             // 1. Summary Sheet
             const summaryData = [
+                ['Dashboard Analytics Summary'],
+                [`Date Range: ${startInput.value || 'All'} to ${endInput.value || 'All'}`],
+                [`Generated: ${new Date().toLocaleString()}`],
+                [],
                 ['Metric', 'Value'],
                 ['Total Attendance Shifts', document.getElementById('stat-total-attendance').textContent],
                 ['Validation Tasks', document.getElementById('stat-total-tasks').textContent],
@@ -1917,6 +1969,7 @@
             // Sheet 1: Summary
             const summaryData = [
                 ...metaRows,
+                [],
                 ['Metric', 'Value'],
                 ['Total Counters', totalCounters],
                 ['Total Pallets', totalPallets],
@@ -2006,6 +2059,162 @@
             XLSX.utils.book_append_sheet(wb, wsRanking, "Performance Ranking");
 
             XLSX.writeFile(wb, fileName);
+        });
+
+        // KPI Report Logic
+        const kpiApplyBtn = document.getElementById('kpi-apply-btn');
+        if(kpiApplyBtn) kpiApplyBtn.addEventListener('click', renderKpiReport);
+
+        function renderKpiReport() {
+            const startDate = document.getElementById('kpi-start-date').value;
+            const endDate = document.getElementById('kpi-end-date').value;
+            
+            if(!startDate || !endDate) return;
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const dateArray = [];
+            for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                dateArray.push(new Date(d).toISOString().split('T')[0]);
+            }
+
+            const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
+            const counters = JSON.parse(localStorage.getItem('ims_daily_counters_v1') || '[]');
+            
+            // Helper to get data
+            const getData = (areaFilter) => {
+                const data = {
+                    '1st Shift-(6am-2pm)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    '2nd Shift-(2pm-10pm)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    '3rd Shift-(10pm-6am)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    'Overall': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 }
+                };
+
+                // Initialize dates
+                dateArray.forEach(date => {
+                    Object.keys(data).forEach(k => data[k].dates[date] = 0);
+                });
+
+                // Process Actuals from Timestamps
+                const sessions = {}; // Group by user+start to calc duration
+                timestamps.forEach(log => {
+                    if(log.deleted) return;
+                    if(log.action === 'Start') {
+                        sessions[log.userId] = { start: log, area: log.areaType };
+                    } else if(log.action === 'End' && sessions[log.userId]) {
+                        const startLog = sessions[log.userId].start;
+                        const area = startLog.area || '';
+                        
+                        // Filter Area
+                        let match = false;
+                        if(areaFilter === 'Pick' && area.includes('Pick Bin')) match = true;
+                        if(areaFilter === 'Reserved' && !area.includes('Pick Bin')) match = true; // Assume Reserved if not Pick
+                        
+                        if(match) {
+                            const info = getShiftFromTimestamp(log.timestamp);
+                            if(dateArray.includes(info.date)) {
+                                const skus = parseInt(log.skus) || 0;
+                                const duration = (new Date(log.timestamp) - new Date(startLog.timestamp)) / 3600000; // hours
+                                
+                                if(data[info.shift]) {
+                                    data[info.shift].dates[info.date] += skus;
+                                    data[info.shift].totalOutput += skus;
+                                    data[info.shift].totalHours += duration;
+                                    
+                                    data['Overall'].dates[info.date] += skus;
+                                    data['Overall'].totalOutput += skus;
+                                    data['Overall'].totalHours += duration;
+                                }
+                            }
+                        }
+                        delete sessions[log.userId];
+                    }
+                });
+
+                // Process Targets from Daily Counters
+                counters.forEach(c => {
+                    if(dateArray.includes(c.date)) {
+                        let rate = 0;
+                        if(areaFilter === 'Pick') rate = Number(c.pickRate) || 0;
+                        else rate = Number(c.resRate) || 0;
+                        
+                        // Fallback to standard rate if split not available
+                        if(rate === 0) rate = Number(c.standardRate) || 0;
+
+                        if(rate > 0 && data[c.shift]) {
+                            data[c.shift].targetSum += rate;
+                            data[c.shift].targetCount++;
+                            data['Overall'].targetSum += rate;
+                            data['Overall'].targetCount++;
+                        }
+                    }
+                });
+
+                return data;
+            };
+
+            const renderTable = (containerId, areaName, data) => {
+                const container = document.getElementById(containerId);
+                let html = `<table class="kpi-table"><thead><tr>
+                    <th style="min-width:80px;">Area</th>
+                    <th style="min-width:80px;">Shift</th>
+                    <th class="col-target">Target/Hr</th>
+                    <th class="col-ave">Ave.Prod</th>
+                    <th class="col-part">Particulars</th>`;
+                
+                dateArray.forEach(d => {
+                    const dateObj = new Date(d);
+                    const header = `${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()}`;
+                    html += `<th>${header}</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+
+                const shifts = ['1st Shift-(6am-2pm)', '2nd Shift-(2pm-10pm)', '3rd Shift-(10pm-6am)', 'Overall'];
+                const shiftLabels = {'1st Shift-(6am-2pm)': '1st Shift', '2nd Shift-(2pm-10pm)': '2nd Shift', '3rd Shift-(10pm-6am)': '3rd Shift', 'Overall': `${areaName} results / Overall`};
+
+                shifts.forEach(shift => {
+                    const rowData = data[shift];
+                    const targetAvg = rowData.targetCount > 0 ? Math.round(rowData.targetSum / rowData.targetCount) : 0;
+                    const aveProd = rowData.totalHours > 0 ? Math.round(rowData.totalOutput / rowData.totalHours) : 0;
+                    
+                    html += `<tr>
+                        <td>${areaName}</td>
+                        <td style="font-weight:bold;">${shiftLabels[shift]}</td>
+                        <td class="col-target">${targetAvg}</td>
+                        <td class="col-ave">${aveProd}</td>
+                        <td class="col-part">Actual Output</td>`;
+                    
+                    dateArray.forEach(d => {
+                        html += `<td>${rowData.dates[d]}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            };
+
+            const reservedData = getData('Reserved');
+            renderTable('kpi-reserved-container', 'Reserved Bin', reservedData);
+
+            const pickData = getData('Pick');
+            renderTable('kpi-pick-container', 'Pick Bin', pickData);
+            
+            applyColumnVisibility();
+        }
+
+        function applyColumnVisibility() {
+            const hideTarget = !document.getElementById('kpi-col-target').checked;
+            const hideAve = !document.getElementById('kpi-col-ave').checked;
+            const hidePart = !document.getElementById('kpi-col-part').checked;
+
+            document.querySelectorAll('.col-target').forEach(el => el.style.display = hideTarget ? 'none' : '');
+            document.querySelectorAll('.col-ave').forEach(el => el.style.display = hideAve ? 'none' : '');
+            document.querySelectorAll('.col-part').forEach(el => el.style.display = hidePart ? 'none' : '');
+        }
+
+        document.querySelectorAll('.kpi-col-toggle').forEach(cb => {
+            cb.addEventListener('change', applyColumnVisibility);
         });
 
         document.getElementById('gen-attendance-report').addEventListener('click', () => {
@@ -2123,6 +2332,7 @@
             // Sheet 1: Summary
             const summaryData = [
                 ...metaRows,
+                [],
                 ['Metric', 'Value'],
                 ['Total Tasks', totalTasks],
                 ['Resolved', resolvedTasks],
@@ -2261,6 +2471,24 @@
                     return;
                 }
                 sendDailyReportEmail(recipients);
+            });
+        }
+
+        const kpiBtn = document.getElementById('kpi-btn');
+        if(kpiBtn) {
+            kpiBtn.addEventListener('click', () => {
+                const modal = document.getElementById('kpi-modal');
+                if(modal) {
+                    modal.classList.remove('hidden');
+                    // Set default dates if empty
+                    if(!document.getElementById('kpi-start-date').value) {
+                        const now = new Date();
+                        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                        document.getElementById('kpi-start-date').value = firstDay.toISOString().split('T')[0];
+                        document.getElementById('kpi-end-date').value = now.toISOString().split('T')[0];
+                    }
+                    renderKpiReport();
+                }
             });
         }
 
