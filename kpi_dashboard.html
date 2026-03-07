@@ -1,1 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI Dashboard - IMS</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body.dark-mode header { background: #1a252f; border-bottom: 1px solid #2c3e50; }
+    body.dark-mode header h1 { color: #ecf0f1; }
+    body { padding-top: 0 !important; }
 
+    .kpi-table-container { overflow-x: auto; margin-bottom: 20px; border: 1px solid #ccc; }
+    .kpi-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    .kpi-table th, .kpi-table td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+    .kpi-table th { background-color: #f0f0f0; font-weight: bold; }
+    
+    body.dark-mode .kpi-table th { background-color: #2c2c2c; border-color: #444; color: #e0e0e0; }
+    body.dark-mode .kpi-table td { border-color: #444; color: #e0e0e0; background-color: #1e1e1e; }
+    .week-total-col { background-color: #e8f5e9 !important; font-weight: bold; }
+    body.dark-mode .week-total-col { background-color: #1b5e20 !important; }
+    .sunday-col { color: #e74c3c !important; }
+
+    /* Sticky Columns */
+    .sticky-col { position: sticky; z-index: 2; background-color: #fff; box-shadow: 1px 0 0 #ccc; }
+    th.sticky-col { z-index: 3; background-color: #f0f0f0; }
+    body.dark-mode .sticky-col { background-color: #1e1e1e; box-shadow: 1px 0 0 #444; }
+    body.dark-mode th.sticky-col { background-color: #2c2c2c; }
+
+    .col-area { width: 80px; min-width: 80px; max-width: 80px; }
+    .col-shift { width: 80px; min-width: 80px; max-width: 80px; }
+    .col-target { width: 70px; min-width: 70px; max-width: 70px; }
+    .col-ave { width: 70px; min-width: 70px; max-width: 70px; }
+    .col-part { width: 120px; min-width: 120px; max-width: 120px; }
+
+    /* Editable Cells */
+    .editable-cell { cursor: text; border-bottom: 1px dashed #ccc; background-color: #fff; }
+    .editable-cell:hover { background-color: #f9f9f9; }
+    .editable-cell:focus { background-color: #e3f2fd; outline: none; border-bottom: 2px solid #2752a7; }
+  </style>
+</head>
+<body class="inventory-mode">
+  <script>
+    if(localStorage.getItem('ims_sidebar_collapsed') === '1') document.body.classList.add('sidebar-collapsed');
+  </script>
+
+  <nav id="app-sidebar">
+    <div class="sidebar-brand">
+      <img src="Logo.jpg" alt="Logo" class="sidebar-logo" style="height:32px;width:auto;margin-right:8px">
+      <span class="brand-text">IMS</span>
+      <button id="main-sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+    </div>
+    <ul class="sidebar-menu">
+      <li>
+        <button onclick="window.location.href='homepage.html'" data-tooltip="Homepage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span class="menu-text">Homepage</span>
+        </button>
+      </li>
+      <li>
+        <button onclick="window.location.href='daily_cycle_count.html'" data-tooltip="Daily Cycle Count">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="menu-text">Daily Cycle Count</span>
+        </button>
+      </li>
+      <li>
+        <button onclick="window.location.href='all_ic_attendance.html'" data-tooltip="All IC Attendance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span class="menu-text">All IC Attendance</span>
+        </button>
+      </li>
+      <li>
+        <button class="active" onclick="window.location.href='dashboard_analytics.html'" data-tooltip="Analytics & Reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span class="menu-text">Analytics & Reports</span>
+        </button>
+      </li>
+      <li>
+        <button onclick="window.location.href='settings.html'" data-tooltip="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span class="menu-text">Settings</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <button onclick="window.location.href='dashboard_analytics.html'" class="icon-btn" title="Back to Analytics" style="border:none; background:transparent; font-size:16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h1>KPI Dashboard</h1>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="toggleTheme()" class="icon-btn" title="Toggle Theme" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border:none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button onclick="signOut()" class="icon-btn" title="Logout" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border:none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #e74c3c;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card" style="width: 100%; display:flex; flex-direction:column;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; flex-wrap:wrap; background:#f9f9f9; padding:10px; border-radius:4px;">
+            <label style="font-weight:bold; font-size:12px;">Date Range:</label>
+            <input type="date" id="kpi-start-date" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+            <span>to</span>
+            <input type="date" id="kpi-end-date" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+            <button id="kpi-apply-btn" class="icon-btn" style="background:#2752a7; color:white; padding:4px 12px; font-size:12px;">Apply</button>
+            
+            <select id="kpi-week-filter" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px; max-width: 180px; margin-left: 10px;">
+                <option value="all">All Weeks</option>
+            </select>
+            <label style="font-size:12px; cursor:pointer; margin-left:10px; font-weight:bold;"><input type="checkbox" id="kpi-view-weekly"> Weekly View</label>
+            
+            <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                <span style="font-size:12px; font-weight:bold;">Show Columns:</span>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-target" class="kpi-col-toggle" checked> Target/Hr</label>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-ave" class="kpi-col-toggle" checked> Ave.Prod</label>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-part" class="kpi-col-toggle" checked> Particulars</label>
+            </div>
+        </div>
+        
+        <div style="flex:1; overflow-y:auto; padding-right:5px;">
+            <h4 style="margin-top:0; color:#2752a7;">Table 1: Reserved Bin</h4>
+            <div id="kpi-reserved-container" class="kpi-table-container"></div>
+            
+            <h4 style="color:#2752a7;">Table 2: Pick Bin</h4>
+            <div id="kpi-pick-container" class="kpi-table-container"></div>
+        </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if(!sessionStorage.getItem('dms_auth_v1')) window.location.href = 'index.html';
+
+        function getShiftFromTimestamp(ts) {
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return { date: '', shift: '' };
+            const h = d.getHours();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            let dateStr = `${year}-${month}-${day}`;
+            let shift = '';
+            
+            if (h >= 6 && h < 14) {
+                shift = '1st Shift-(6am-2pm)';
+            } else if (h >= 14 && h < 22) {
+                shift = '2nd Shift-(2pm-10pm)';
+            } else {
+                shift = '3rd Shift-(10pm-6am)';
+                if (h < 6) {
+                    const prev = new Date(d);
+                    prev.setDate(d.getDate() - 1);
+                    const pYear = prev.getFullYear();
+                    const pMonth = String(prev.getMonth() + 1).padStart(2, '0');
+                    const pDay = String(prev.getDate()).padStart(2, '0');
+                    dateStr = `${pYear}-${pMonth}-${pDay}`;
+                }
+            }
+            return { date: dateStr, shift };
+        }
+
+        const kpiApplyBtn = document.getElementById('kpi-apply-btn');
+        const kpiWeekFilter = document.getElementById('kpi-week-filter');
+
+        if(kpiApplyBtn) {
+            kpiApplyBtn.addEventListener('click', () => {
+                updateWeekOptions();
+                renderKpiReport();
+            });
+        }
+
+        if(kpiWeekFilter) {
+            kpiWeekFilter.addEventListener('change', renderKpiReport);
+        }
+
+        function updateWeekOptions() {
+            const startDate = document.getElementById('kpi-start-date').value;
+            const endDate = document.getElementById('kpi-end-date').value;
+            if(!startDate || !endDate) return;
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const weeks = {};
+
+            for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dateObj = new Date(d);
+                const day = dateObj.getDay();
+                const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+                const monday = new Date(new Date(d).setDate(diff));
+                const mondayStr = monday.toISOString().split('T')[0];
+                if(!weeks[mondayStr]) weeks[mondayStr] = [];
+                weeks[mondayStr].push(new Date(d).toISOString().split('T')[0]);
+            }
+
+            kpiWeekFilter.innerHTML = '<option value="all">All Weeks</option>';
+            Object.keys(weeks).sort().forEach((mondayStr, index) => {
+                const weekDates = weeks[mondayStr];
+                const label = `Week ${index + 1} (${weekDates[0]}...)`;
+                const opt = document.createElement('option');
+                opt.value = mondayStr; // Use Monday as key
+                opt.textContent = label;
+                kpiWeekFilter.appendChild(opt);
+            });
+        }
+
+        function renderKpiReport() {
+            const startDate = document.getElementById('kpi-start-date').value;
+            const endDate = document.getElementById('kpi-end-date').value;
+            const isWeekly = document.getElementById('kpi-view-weekly').checked;
+            const selectedWeek = document.getElementById('kpi-week-filter').value;
+            
+            if(!startDate || !endDate) return;
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const dateArray = [];
+
+            const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
+            const counters = JSON.parse(localStorage.getItem('ims_daily_counters_v1') || '[]');
+            const attendance = [
+                    ...JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]'),
+                    ...JSON.parse(localStorage.getItem('ims_daily_counters_attendance_v1') || '[]')
+                ];
+            
+            // Generate full date range first
+            for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                dateArray.push(new Date(d).toISOString().split('T')[0]);
+            }
+
+            // Filter dateArray if specific week selected
+            let filteredDateArray = dateArray;
+            if (selectedWeek !== 'all') {
+                filteredDateArray = dateArray.filter(d => {
+                    const dateObj = new Date(d);
+                    const day = dateObj.getDay();
+                    const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+                    const monday = new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
+                    return monday === selectedWeek;
+                });
+            }
+            
+            // Load Overrides
+            const overrides = JSON.parse(localStorage.getItem('ims_kpi_overrides_v1') || '{}');
+
+            const getData = (areaFilter) => {
+                const data = {
+                    '1st Shift-(6am-2pm)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    '2nd Shift-(2pm-10pm)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    '3rd Shift-(10pm-6am)': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 },
+                    'Overall': { dates: {}, totalOutput: 0, totalHours: 0, targetSum: 0, targetCount: 0 }
+                };
+
+                filteredDateArray.forEach(date => {
+                    Object.keys(data).forEach(k => data[k].dates[date] = { skus: 0, hc: 0, hours: 0 });
+                });
+
+                const sessions = {};
+                timestamps.forEach(log => {
+                    if(log.deleted) return;
+                    if(log.action === 'Start') {
+                        sessions[log.userId] = { start: log, area: log.areaType };
+                    } else if(log.action === 'End' && sessions[log.userId]) {
+                        const startLog = sessions[log.userId].start;
+                        const area = startLog.area || '';
+                        
+                        let match = false;
+                        if(areaFilter === 'Pick' && area.includes('Pick Bin')) match = true;
+                        if(areaFilter === 'Reserved' && !area.includes('Pick Bin')) match = true;
+                        
+                        if(match) {
+                            const info = getShiftFromTimestamp(log.timestamp);
+                            if(filteredDateArray.includes(info.date)) {
+                                const skus = parseInt(log.skus) || 0;
+                                const duration = (new Date(log.timestamp) - new Date(startLog.timestamp)) / 3600000;
+                                
+                                if(data[info.shift]) {
+                                    data[info.shift].dates[info.date].skus += skus;
+                                    data[info.shift].dates[info.date].hours += duration;
+                                    data[info.shift].totalOutput += skus;
+                                    data[info.shift].totalHours += duration;
+                                    
+                                    data['Overall'].dates[info.date].skus += skus;
+                                    data['Overall'].dates[info.date].hours += duration;
+                                    data['Overall'].totalOutput += skus;
+                                    data['Overall'].totalHours += duration;
+                                }
+                            }
+                        }
+                        delete sessions[log.userId];
+                    }
+                });
+
+                const dailyHc = {};
+                attendance.forEach(att => {
+                    if (filteredDateArray.includes(att.date)) {
+                        const key = `${att.date}|${att.shift}`;
+                        if (!dailyHc[key]) dailyHc[key] = new Set();
+                        dailyHc[key].add(att.userId);
+                    }
+                });
+
+                filteredDateArray.forEach(date => {
+                    Object.keys(data).forEach(shift => {
+                        if (shift !== 'Overall') {
+                            const key = `${date}|${shift}`;
+                            const hc = dailyHc[key] ? dailyHc[key].size : 0;
+                            data[shift].dates[date].hc = hc;
+                            data['Overall'].dates[date].hc += hc;
+                        }
+                    });
+                });
+
+                counters.forEach(c => {
+                    if(filteredDateArray.includes(c.date)) {
+                        let rate = 0;
+                        if(areaFilter === 'Pick') rate = Number(c.pickRate) || 0;
+                        else rate = Number(c.resRate) || 0;
+                        if(rate === 0) rate = Number(c.standardRate) || 0;
+
+                        if(rate > 0 && data[c.shift]) {
+                            data[c.shift].targetSum += rate;
+                            data[c.shift].targetCount++;
+                            data['Overall'].targetSum += rate;
+                            data['Overall'].targetCount++;
+                        }
+                    }
+                });
+
+                // Apply Daily Overrides & Recalculate Totals
+                Object.keys(data).forEach(shift => {
+                    if (shift === 'Overall') return;
+                    
+                    // Apply Daily Overrides
+                    filteredDateArray.forEach(date => {
+                        const keyPrefix = `${areaFilter}|${shift}|${date}|`;
+                        if (overrides[keyPrefix + 'skus'] !== undefined) data[shift].dates[date].skus = Number(overrides[keyPrefix + 'skus']);
+                        if (overrides[keyPrefix + 'hc'] !== undefined) data[shift].dates[date].hc = Number(overrides[keyPrefix + 'hc']);
+                        if (overrides[keyPrefix + 'hours'] !== undefined) data[shift].dates[date].hours = Number(overrides[keyPrefix + 'hours']);
+                    });
+
+                    // Recalculate Shift Totals
+                    let totalOutput = 0;
+                    let totalHours = 0;
+                    filteredDateArray.forEach(date => {
+                        totalOutput += data[shift].dates[date].skus;
+                        totalHours += data[shift].dates[date].hours;
+                    });
+                    data[shift].totalOutput = totalOutput;
+                    data[shift].totalHours = totalHours;
+
+                    // Check for Row Overrides
+                    const rowKeyPrefix = `${areaFilter}|${shift}|`;
+                    if (overrides[rowKeyPrefix + 'target'] !== undefined) data[shift].targetAvgOverride = Number(overrides[rowKeyPrefix + 'target']);
+                    if (overrides[rowKeyPrefix + 'ave_prod'] !== undefined) data[shift].aveProdOverride = Number(overrides[rowKeyPrefix + 'ave_prod']);
+                });
+
+                // Re-calculate Overall from Shifts
+                filteredDateArray.forEach(date => {
+                    data['Overall'].dates[date] = { skus: 0, hc: 0, hours: 0 };
+                    Object.keys(data).forEach(shift => {
+                        if (shift !== 'Overall') {
+                            data['Overall'].dates[date].skus += data[shift].dates[date].skus;
+                            data['Overall'].dates[date].hc += data[shift].dates[date].hc;
+                            data['Overall'].dates[date].hours += data[shift].dates[date].hours;
+                        }
+                    });
+                });
+
+                return data;
+            };
+
+            const renderTable = (containerId, areaName, data) => {
+                const container = document.getElementById(containerId);
+                
+                let columns = [];
+                if (isWeekly) {
+                    const weeks = {};
+                    filteredDateArray.forEach(d => {
+                        const dateObj = new Date(d);
+                        const day = dateObj.getDay();
+                        const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+                        const monday = new Date(new Date(d).setDate(diff));
+                        const mondayStr = monday.toISOString().split('T')[0];
+                        
+                        if (!weeks[mondayStr]) weeks[mondayStr] = [];
+                        weeks[mondayStr].push(d);
+                    });
+                    
+                    Object.keys(weeks).sort().forEach(mondayStr => {
+                        const weekDates = weeks[mondayStr];
+                        if (weekDates.some(wd => filteredDateArray.includes(wd))) {
+                            const mon = new Date(mondayStr);
+                            const header = `Week of ${mon.toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
+                            columns.push({ label: header, dates: weekDates, type: 'week' });
+                        }
+                    });
+                } else {
+                    // Daily View with Weekly Totals
+                    const weeks = {};
+                    filteredDateArray.forEach(d => {
+                        const dateObj = new Date(d);
+                        const day = dateObj.getDay();
+                        const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+                        const monday = new Date(new Date(d).setDate(diff)).toISOString().split('T')[0];
+                        if(!weeks[monday]) weeks[monday] = [];
+                        weeks[monday].push(d);
+                    });
+
+                    Object.keys(weeks).sort().forEach(monday => {
+                        const weekDates = weeks[monday];
+                        weekDates.forEach(d => {
+                            const dateObj = new Date(d);
+                            const dayLabels = ['S', 'M', 'T', 'W', 'Th', 'F', 'S'];
+                            const dayIdx = dateObj.getDay();
+                            const dayName = dayLabels[dayIdx];
+                            const header = `${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()} ${dayName}`;
+                            const isSunday = dayIdx === 0;
+                            columns.push({ label: header, dates: [d], type: 'day', isSunday: isSunday });
+                        });
+                        // Add Week Total Column
+                        columns.push({ label: 'Week Total', dates: weekDates, type: 'total', isWeekTotal: true });
+                    });
+                }
+
+                let html = `<table class="kpi-table"><thead><tr>
+                    <th class="sticky-col col-area">Area</th>
+                    <th class="sticky-col col-shift">Shift</th>
+                    <th class="sticky-col col-target">Target/Hr</th>
+                    <th class="sticky-col col-ave">Ave.Prod</th>
+                    <th class="sticky-col col-part">Particulars</th>`;
+                
+                columns.forEach(col => { 
+                    let cls = col.isWeekTotal ? 'week-total-col' : '';
+                    if (col.isSunday) cls += ' sunday-col';
+                    html += `<th class="${cls}">${col.label}</th>`; 
+                });
+                html += `</tr></thead><tbody>`;
+
+                const shifts = ['1st Shift-(6am-2pm)', '2nd Shift-(2pm-10pm)', '3rd Shift-(10pm-6am)', 'Overall'];
+                const shiftLabels = {'1st Shift-(6am-2pm)': '1st Shift', '2nd Shift-(2pm-10pm)': '2nd Shift', '3rd Shift-(10pm-6am)': '3rd Shift', 'Overall': `${areaName} results / Overall`};
+                const particulars = ['# of sku', '# of HC', 'Working Hours', 'Productivity'];
+
+                shifts.forEach((shift, shiftIndex) => {
+                    const rowData = data[shift];
+                    let targetAvg = rowData.targetCount > 0 ? Math.round(rowData.targetSum / rowData.targetCount) : 0;
+                    let aveProd = rowData.totalHours > 0 ? Math.round(rowData.totalOutput / rowData.totalHours) : 0;
+                    
+                    // Use overrides if available
+                    if (rowData.targetAvgOverride !== undefined) targetAvg = rowData.targetAvgOverride;
+                    if (rowData.aveProdOverride !== undefined) aveProd = rowData.aveProdOverride;
+
+                    const isOverall = shift === 'Overall';
+                    
+                    // Editable attributes for summary columns
+                    const editTargetAttr = (!isOverall && !isWeekly) ? `contenteditable="true" class="sticky-col col-target editable-cell" onblur="saveKpiEdit(this, '${areaName}', '${shift}', null, 'target')"` : `class="sticky-col col-target"`;
+                    const editAveAttr = (!isOverall && !isWeekly) ? `contenteditable="true" class="sticky-col col-ave editable-cell" onblur="saveKpiEdit(this, '${areaName}', '${shift}', null, 'ave_prod')"` : `class="sticky-col col-ave"`;
+                    
+                    particulars.forEach((part, partIndex) => {
+                        html += `<tr>`;
+                        if (partIndex === 0) {
+                            html += `<td rowspan="4" class="sticky-col col-area">${areaName}</td><td rowspan="4" class="sticky-col col-shift" style="font-weight:bold;">${shiftLabels[shift]}</td><td rowspan="4" ${editTargetAttr}>${targetAvg}</td><td rowspan="4" ${editAveAttr}>${aveProd}</td>`;
+                        }
+                        html += `<td class="sticky-col col-part">${part}</td>`;
+                        
+                        columns.forEach(col => {
+                            let cellValue = '';
+                            let sumSkus = 0, sumHours = 0, sumHc = 0, countHc = 0;
+                            let isEditable = false;
+                            let metricKey = '';
+
+                            col.dates.forEach(d => {
+                                if (rowData.dates[d]) {
+                                    sumSkus += rowData.dates[d].skus;
+                                    sumHours += rowData.dates[d].hours;
+                                    if (rowData.dates[d].hc > 0) { sumHc += rowData.dates[d].hc; countHc++; }
+                                }
+                            });
+
+                            if (part === '# of sku') cellValue = sumSkus;
+                            else if (part === '# of HC') cellValue = countHc > 0 ? Math.round(sumHc / countHc) : 0;
+                            else if (part === 'Working Hours') cellValue = sumHours.toFixed(2);
+                            else if (part === 'Productivity') cellValue = sumHours > 0 ? (sumSkus / sumHours).toFixed(2) : 0;
+                            
+                            const cls = col.isWeekTotal ? 'week-total-col' : '';
+                            html += `<td class="${cls}">${cellValue}</td>`;
+                        });
+                        html += `</tr>`;
+                    });
+                });
+
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            };
+
+            const reservedData = getData('Reserved');
+            renderTable('kpi-reserved-container', 'Reserved Bin', reservedData);
+
+            const pickData = getData('Pick');
+            renderTable('kpi-pick-container', 'Pick Bin', pickData);
+            
+            applyColumnVisibility();
+        }
+
+        function applyColumnVisibility() {
+            const hideTarget = !document.getElementById('kpi-col-target').checked;
+            const hideAve = !document.getElementById('kpi-col-ave').checked;
+            const hidePart = !document.getElementById('kpi-col-part').checked;
+
+            document.querySelectorAll('.col-target').forEach(el => el.style.display = hideTarget ? 'none' : '');
+            document.querySelectorAll('.col-ave').forEach(el => el.style.display = hideAve ? 'none' : '');
+            document.querySelectorAll('.col-part').forEach(el => el.style.display = hidePart ? 'none' : '');
+            
+            updateStickyPositions();
+        }
+
+        function updateStickyPositions() {
+            const hideTarget = !document.getElementById('kpi-col-target').checked;
+            const hideAve = !document.getElementById('kpi-col-ave').checked;
+            
+            let currentLeft = 0;
+            document.querySelectorAll('.col-area').forEach(el => el.style.left = currentLeft + 'px');
+            currentLeft += 80;
+            document.querySelectorAll('.col-shift').forEach(el => el.style.left = currentLeft + 'px');
+            currentLeft += 80;
+            if(!hideTarget) { document.querySelectorAll('.col-target').forEach(el => el.style.left = currentLeft + 'px'); currentLeft += 70; }
+            if(!hideAve) { document.querySelectorAll('.col-ave').forEach(el => el.style.left = currentLeft + 'px'); currentLeft += 70; }
+            document.querySelectorAll('.col-part').forEach(el => el.style.left = currentLeft + 'px');
+        }
+
+        window.saveKpiEdit = function(el, area, shift, date, metric) {
+            const val = el.innerText.trim();
+            const overrides = JSON.parse(localStorage.getItem('ims_kpi_overrides_v1') || '{}');
+            let key = '';
+            
+            if (date) {
+                key = `${area}|${shift}|${date}|${metric}`;
+            } else {
+                key = `${area}|${shift}|${metric}`;
+            }
+            
+            overrides[key] = val;
+            localStorage.setItem('ims_kpi_overrides_v1', JSON.stringify(overrides));
+            
+            // Re-render to update totals/averages
+            renderKpiReport();
+        };
+
+        document.querySelectorAll('.kpi-col-toggle').forEach(cb => {
+            cb.addEventListener('change', applyColumnVisibility);
+        });
+
+        // Initial Load
+        const now = new Date();
+        const year = now.getFullYear();
+        const firstJan = new Date(year, 0, 1);
+        const day = firstJan.getDay();
+        const diff = firstJan.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+        const firstMonday = new Date(firstJan.setDate(diff));
+        document.getElementById('kpi-start-date').value = firstMonday.toISOString().split('T')[0];
+        document.getElementById('kpi-end-date').value = now.toISOString().split('T')[0];
+        updateWeekOptions();
+        renderKpiReport();
+    });
+  </script>
+</body>
+</html>
