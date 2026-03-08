@@ -1109,7 +1109,32 @@ function addNotification(message, type = 'info') {
   }
 
   toast.textContent = message;
-  toast.style.backgroundColor = (type === 'warning' || type === 'error') ? '#e74c3c' : '#2ecc71';
+  
+  // Reset styles
+  toast.style.top = '30px';
+  toast.style.left = '50%';
+  toast.style.transform = 'translateX(-50%)';
+  toast.style.fontSize = '16px';
+  toast.style.padding = '16px';
+  toast.style.width = 'auto';
+  toast.style.maxWidth = 'none';
+  toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+  toast.style.zIndex = '20000';
+
+  if (type === 'reminder') {
+      toast.style.backgroundColor = '#8e44ad';
+      toast.style.top = '50%';
+      toast.style.transform = 'translate(-50%, -50%)';
+      toast.style.fontSize = '24px';
+      toast.style.padding = '40px';
+      toast.style.width = '80%';
+      toast.style.maxWidth = '600px';
+      toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+      toast.style.zIndex = '21000';
+      if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+  } else {
+      toast.style.backgroundColor = (type === 'warning' || type === 'error') ? '#e74c3c' : '#2ecc71';
+  }
 
   if (toast.classList.contains('show')) {
     toast.classList.remove('show');
@@ -1180,6 +1205,23 @@ function checkStaleData() {
   check('ims_ir_records_v1', 'IR', 'updatedDate', 'date');
   check('ims_cycle_count_v1', 'Cycle Count', 'date', 'createdDate');
 }
+
+// Manual Status Reminder Check
+setInterval(() => {
+    const timesStr = localStorage.getItem('ims_status_reminder_time');
+    if (!timesStr) return;
+    let times = [];
+    try { times = JSON.parse(timesStr); } catch(e) { times = timesStr.split(','); }
+    if (!Array.isArray(times)) times = [timesStr];
+    const now = new Date();
+    const currentHM = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+    const lastAlert = sessionStorage.getItem('ims_last_reminder_alert');
+    if (lastAlert === currentHM) return;
+    if (times.includes(currentHM)) {
+        addNotification("🔔 Reminder: Please update your manual status report.", "reminder");
+        sessionStorage.setItem('ims_last_reminder_alert', currentHM);
+    }
+}, 10000);
 
 function renderPendingCycleCounts() {
   const SCHEDULE_KEY = 'ims_cycle_count_schedule_v1';
