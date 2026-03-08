@@ -153,6 +153,7 @@
                         <div id="storageProgressBar" style="height: 100%; width: 0%; background-color: var(--primary-color); transition: width 0.3s;"></div>
                     </div>
                     <p id="storageRowsText" style="font-size: 12px; color: #7f8c8d; margin-top: 8px;">Estimated capacity: Calculating...</p>
+                    <div id="storageBreakdown" style="margin-top: 15px;"></div>
                 </div>
             </div>
 
@@ -309,10 +310,46 @@
         // Approximate limit for localStorage (5MB is standard safe limit)
         const MAX_BYTES = 5 * 1024 * 1024; 
         let totalUsed = 0;
+        const breakdown = {};
+        
+        // Map keys to readable names (Page/Module)
+        const keyMap = {
+            'ims_daily_attendance_v1': 'All IC Attendance',
+            'ims_daily_counters_v1': 'Daily Cycle Count',
+            'ims_daily_counters_attendance_v1': 'Daily Cycle Count (Att)',
+            'ims_cycle_count_v1': 'Cycle Count Data',
+            'ims_validation_tasks_v1': 'Validation Tasks',
+            'ims_counter_timestamps_v1': 'Timestamps',
+            'ims_ir_records_v1': 'Incident Reports',
+            'dms_docs_v1': 'Documents',
+            'ims_master_users_v1': 'User Master',
+            'ims_master_desc_v1': 'SKU Master',
+            'ims_ops_validators_v1': 'Ops Validators',
+            'ims_findings_master_v1': 'Findings Master',
+            'ims_rack_labels_v1': 'Rack Monitor Labels',
+            'ims_rack_status_v1': 'Rack Monitor Status',
+            'ims_kpi_overrides_v1': 'KPI Data',
+            'ims_daily_tasks_v1': 'Daily Task Tracker',
+            'ims_email_settings_v1': 'Settings',
+            'ims_theme': 'Settings',
+            'ims_status_reminder_time': 'Settings',
+            'dms_users_v1': 'Users',
+            'dms_notifications_v1': 'Notifications'
+        };
         
         for (let key in localStorage) {
             if (localStorage.hasOwnProperty(key)) {
-                totalUsed += (localStorage[key].length + key.length);
+                const size = (localStorage[key].length + key.length);
+                totalUsed += size;
+                
+                let label = keyMap[key] || 'Other Data';
+                if (label === 'Other Data') {
+                     if (key.startsWith('ims_')) label = 'Other IMS Data';
+                     else if (key.startsWith('dms_')) label = 'Other DMS Data';
+                }
+                
+                if (!breakdown[label]) breakdown[label] = 0;
+                breakdown[label] += size;
             }
         }
 
@@ -359,6 +396,24 @@
             if (parseFloat(percent) >= 90) {
                 rowsText.innerHTML += '<br><strong style="color: #e74c3c;">⚠️ Critical Storage Level: Please backup and clear old data.</strong>';
             }
+        }
+
+        // Render Breakdown
+        const breakdownContainer = document.getElementById('storageBreakdown');
+        if (breakdownContainer) {
+            let html = '<h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #555;">Usage Breakdown</h4>';
+            html += '<table style="width:100%; font-size:11px; border-collapse:collapse;">';
+            html += '<tr style="background:#f5f5f5;"><th style="text-align:left; padding:4px; border-bottom:1px solid #ddd;">Module</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">Size</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">%</th></tr>';
+            
+            const sorted = Object.entries(breakdown).sort((a,b) => b[1] - a[1]);
+            
+            sorted.forEach(([label, size]) => {
+                const kb = (size / 1024).toFixed(2);
+                const pct = totalUsed > 0 ? ((size / totalUsed) * 100).toFixed(1) : 0;
+                html += `<tr><td style="padding:4px; border-bottom:1px solid #eee;">${label}</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${kb} KB</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${pct}%</td></tr>`;
+            });
+            html += '</table>';
+            breakdownContainer.innerHTML = html;
         }
     }
     
