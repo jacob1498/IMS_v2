@@ -24,10 +24,10 @@
     .sunday-col { color: #e74c3c !important; }
 
     /* Sticky Columns */
-    .sticky-col { position: sticky; z-index: 2; background-color: #fff; box-shadow: 1px 0 0 #ccc; }
-    th.sticky-col { z-index: 3; background-color: #f0f0f0; }
-    body.dark-mode .sticky-col { background-color: #1e1e1e; box-shadow: 1px 0 0 #444; }
-    body.dark-mode th.sticky-col { background-color: #2c2c2c; }
+    .sticky-col { position: sticky; z-index: 2; background-color: #f9f9f9; box-shadow: 1px 0 0 #ccc; }
+    th.sticky-col { z-index: 3; background-color: #e0e0e0; }
+    body.dark-mode .sticky-col { background-color: #252525; box-shadow: 1px 0 0 #444; }
+    body.dark-mode th.sticky-col { background-color: #1a1a1a; }
 
     .col-area { width: 80px; min-width: 80px; max-width: 80px; }
     .col-shift { width: 80px; min-width: 80px; max-width: 80px; }
@@ -36,9 +36,36 @@
     .col-part { width: 120px; min-width: 120px; max-width: 120px; }
 
     /* Editable Cells */
-    .editable-cell { cursor: text; border-bottom: 1px dashed #ccc; background-color: #fff; }
-    .editable-cell:hover { background-color: #f9f9f9; }
+    .editable-cell { cursor: text; border-bottom: 1px dashed #ccc; background-color: transparent; }
+    .editable-cell:hover { background-color: #fff; }
+    body.dark-mode .editable-cell:hover { background-color: #333; }
     .editable-cell:focus { background-color: #e3f2fd; outline: none; border-bottom: 2px solid #2752a7; }
+
+    .highlight-row { background-color: #e3f2fd; }
+    .highlight-row .sticky-col { background-color: #e3f2fd; }
+    body.dark-mode .highlight-row { background-color: #37474f; }
+    body.dark-mode .highlight-row .sticky-col { background-color: #37474f; }
+
+    .kpi-success { background-color: #c8e6c9 !important; color: #2e7d32 !important; font-weight: bold; }
+    body.dark-mode .kpi-success { background-color: #1b5e20 !important; color: #a5d6a7 !important; }
+
+    .kpi-failure { background-color: #ffcdd2 !important; color: #c62828 !important; }
+    body.dark-mode .kpi-failure { background-color: #b71c1c !important; color: #ffcdd2 !important; }
+
+    .legend-box { margin-top: 10px; font-size: 12px; color: #666; display: flex; gap: 15px; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+    body.dark-mode .legend-box { background-color: #252525; color: #b0bec5; }
+
+    .kpi-fullscreen {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 20000;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        background-color: var(--card, #fff);
+    }
   </style>
 </head>
 <body class="inventory-mode">
@@ -113,6 +140,9 @@
             <span>to</span>
             <input type="date" id="kpi-end-date" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
             <button id="kpi-apply-btn" class="icon-btn" style="background:#2752a7; color:white; padding:4px 12px; font-size:12px;">Apply</button>
+            <button id="kpi-clear-btn" class="icon-btn" style="border:1px solid #ccc; padding:4px 12px; font-size:12px;">Clear</button>
+            <button id="kpi-reset-inputs-btn" class="icon-btn" style="border:1px solid #e74c3c; color:#e74c3c; padding:4px 12px; font-size:12px;">Reset Inputs</button>
+            <button id="kpi-export-excel-btn" class="icon-btn" style="background:#27ae60; color:white; padding:4px 12px; font-size:12px;">Export Excel</button>
             
             <select id="kpi-week-filter" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px; max-width: 180px; margin-left: 10px;">
                 <option value="all">All Weeks</option>
@@ -120,6 +150,14 @@
             <label style="font-size:12px; cursor:pointer; margin-left:10px; font-weight:bold;"><input type="checkbox" id="kpi-view-weekly"> Weekly View</label>
             
             <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                <button id="kpi-fullscreen-btn" class="icon-btn" title="Toggle Full Screen" style="border:1px solid #ccc; padding:4px 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                </button>
+                <span style="font-size:12px; font-weight:bold;">Show Tables:</span>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-show-reserved" checked> Reserved</label>
+                <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-show-pick" checked> Pick</label>
+                <div style="width:1px; height:20px; background:#ccc; margin:0 5px;"></div>
+
                 <span style="font-size:12px; font-weight:bold;">Show Columns:</span>
                 <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-target" class="kpi-col-toggle" checked> Target/Hr</label>
                 <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="kpi-col-ave" class="kpi-col-toggle" checked> Ave.Prod</label>
@@ -128,11 +166,36 @@
         </div>
         
         <div style="flex:1; overflow-y:auto; padding-right:5px;">
-            <h4 style="margin-top:0; color:#2752a7;">Table 1: Reserved Bin</h4>
+            <h4 id="kpi-reserved-header" style="margin-top:0; color:#2752a7;">Table 1: Reserved Bin</h4>
             <div id="kpi-reserved-container" class="kpi-table-container"></div>
             
-            <h4 style="color:#2752a7;">Table 2: Pick Bin</h4>
+            <h4 id="kpi-pick-header" style="color:#2752a7;">Table 2: Pick Bin</h4>
             <div id="kpi-pick-container" class="kpi-table-container"></div>
+
+            <div id="kpi-chart-section" style="margin-top: 20px; padding: 15px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="margin:0; color: #2752a7;" id="kpi-chart-title">Productivity Trend (Overall)</h4>
+                    <select id="kpi-chart-metric" style="padding:4px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                        <option value="productivity">Productivity</option>
+                        <option value="output">Total Output</option>
+                    </select>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="kpi-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="legend-box">
+                <span style="font-weight: bold;">Legend:</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span class="kpi-success" style="width: 12px; height: 12px; display: inline-block; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1);"></span>
+                    <span>Productivity &ge; Target</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span class="kpi-failure" style="width: 12px; height: 12px; display: inline-block; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1);"></span>
+                    <span>Productivity &lt; Target</span>
+                </div>
+            </div>
         </div>
     </div>
   </main>
@@ -171,17 +234,134 @@
         }
 
         const kpiApplyBtn = document.getElementById('kpi-apply-btn');
+        const kpiClearBtn = document.getElementById('kpi-clear-btn');
+        const kpiResetInputsBtn = document.getElementById('kpi-reset-inputs-btn');
+        const kpiExportExcelBtn = document.getElementById('kpi-export-excel-btn');
         const kpiWeekFilter = document.getElementById('kpi-week-filter');
+        let kpiChartInstance = null;
+        const kpiChartMetric = document.getElementById('kpi-chart-metric');
 
         if(kpiApplyBtn) {
             kpiApplyBtn.addEventListener('click', () => {
+                const s = document.getElementById('kpi-start-date').value;
+                const e = document.getElementById('kpi-end-date').value;
+                if(s) localStorage.setItem('ims_kpi_start_date', s);
+                if(e) localStorage.setItem('ims_kpi_end_date', e);
                 updateWeekOptions();
                 renderKpiReport();
             });
         }
 
+        if(kpiClearBtn) {
+            kpiClearBtn.addEventListener('click', () => {
+                localStorage.removeItem('ims_kpi_start_date');
+                localStorage.removeItem('ims_kpi_end_date');
+                
+                const now = new Date();
+                const year = now.getFullYear();
+                const firstJan = new Date(year, 0, 1);
+                const day = firstJan.getDay();
+                const diff = firstJan.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+                const firstMonday = new Date(firstJan.setDate(diff));
+                
+                document.getElementById('kpi-start-date').value = firstMonday.toISOString().split('T')[0];
+                document.getElementById('kpi-end-date').value = now.toISOString().split('T')[0];
+                
+                updateWeekOptions();
+                renderKpiReport();
+            });
+        }
+
+        if(kpiResetInputsBtn) {
+            kpiResetInputsBtn.addEventListener('click', () => {
+                if(confirm('Reset all manual inputs?')) {
+                    localStorage.removeItem('ims_kpi_overrides_v1');
+                    renderKpiReport();
+                }
+            });
+        }
+
+        if(kpiExportExcelBtn) {
+            kpiExportExcelBtn.addEventListener('click', () => {
+                const wb = XLSX.utils.book_new();
+                const areas = [
+                    { id: 'kpi-reserved-container', name: 'Reserved Bin' },
+                    { id: 'kpi-pick-container', name: 'Pick Bin' }
+                ];
+                
+                let hasData = false;
+
+                areas.forEach(area => {
+                    const container = document.getElementById(area.id);
+                    if (!container) return;
+                    const tables = container.querySelectorAll('table');
+                    
+                    if (tables.length > 0) {
+                        hasData = true;
+                        // Create sheet from first table
+                        const ws = XLSX.utils.table_to_sheet(tables[0]);
+                        
+                        // Append subsequent tables
+                        for (let i = 1; i < tables.length; i++) {
+                            const range = XLSX.utils.decode_range(ws['!ref']);
+                            const nextRow = range.e.r + 2; // 1 empty row gap
+                            
+                            const prevSibling = tables[i].previousElementSibling;
+                            if (prevSibling && prevSibling.tagName === 'H5') {
+                                XLSX.utils.sheet_add_aoa(ws, [[prevSibling.textContent]], { origin: { r: nextRow, c: 0 } });
+                                XLSX.utils.sheet_add_dom(ws, tables[i], { origin: { r: nextRow + 1, c: 0 } });
+                            } else {
+                                XLSX.utils.sheet_add_dom(ws, tables[i], { origin: { r: nextRow, c: 0 } });
+                            }
+                        }
+                        XLSX.utils.book_append_sheet(wb, ws, area.name);
+                    }
+                });
+
+                if (hasData) {
+                    XLSX.writeFile(wb, `KPI_Dashboard_${new Date().toISOString().split('T')[0]}.xlsx`);
+                } else {
+                    alert('No data to export.');
+                }
+            });
+        }
+
         if(kpiWeekFilter) {
             kpiWeekFilter.addEventListener('change', renderKpiReport);
+        }
+
+        const kpiShowReserved = document.getElementById('kpi-show-reserved');
+        const kpiShowPick = document.getElementById('kpi-show-pick');
+        const reservedContainer = document.getElementById('kpi-reserved-container');
+        const pickContainer = document.getElementById('kpi-pick-container');
+        const reservedHeader = document.getElementById('kpi-reserved-header');
+        const pickHeader = document.getElementById('kpi-pick-header');
+
+        function toggleTables() {
+            if (reservedContainer && reservedHeader) {
+                const display = kpiShowReserved.checked ? 'block' : 'none';
+                reservedContainer.style.display = display;
+                reservedHeader.style.display = display;
+            }
+            if (pickContainer && pickHeader) {
+                const display = kpiShowPick.checked ? 'block' : 'none';
+                pickContainer.style.display = display;
+                pickHeader.style.display = display;
+            }
+        }
+        if(kpiShowReserved) kpiShowReserved.addEventListener('change', toggleTables);
+        if(kpiShowPick) kpiShowPick.addEventListener('change', toggleTables);
+
+        const kpiFullscreenBtn = document.getElementById('kpi-fullscreen-btn');
+        if(kpiFullscreenBtn) {
+            kpiFullscreenBtn.addEventListener('click', () => {
+                const card = document.querySelector('main .card');
+                if(card) card.classList.toggle('kpi-fullscreen');
+            });
+        }
+
+        if(kpiChartMetric) {
+            kpiChartMetric.addEventListener('change', renderKpiReport);
         }
 
         function updateWeekOptions() {
@@ -193,22 +373,29 @@
             const end = new Date(endDate);
             const weeks = {};
 
+            const anchor = new Date('2024-12-30'); // Week 1 Start (Monday)
+
             for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dateObj = new Date(d);
                 const day = dateObj.getDay();
                 const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Monday start
                 const monday = new Date(new Date(d).setDate(diff));
                 const mondayStr = monday.toISOString().split('T')[0];
-                if(!weeks[mondayStr]) weeks[mondayStr] = [];
-                weeks[mondayStr].push(new Date(d).toISOString().split('T')[0]);
+                
+                if(!weeks[mondayStr]) {
+                    let weekNum = Math.floor(Math.round((monday - anchor) / (1000 * 60 * 60 * 24)) / 7) + 1;
+                    if (weekNum > 52) weekNum = ((weekNum - 1) % 52) + 1;
+                    weeks[mondayStr] = { dates: [], num: weekNum };
+                }
+                weeks[mondayStr].dates.push(new Date(d).toISOString().split('T')[0]);
             }
 
             kpiWeekFilter.innerHTML = '<option value="all">All Weeks</option>';
-            Object.keys(weeks).sort().forEach((mondayStr, index) => {
-                const weekDates = weeks[mondayStr];
-                const label = `Week ${index + 1} (${weekDates[0]}...)`;
+            Object.keys(weeks).sort().forEach((mondayStr) => {
+                const info = weeks[mondayStr];
+                const label = `Week ${info.num} (${mondayStr}...)`;
                 const opt = document.createElement('option');
-                opt.value = mondayStr; // Use Monday as key
+                opt.value = mondayStr; 
                 opt.textContent = label;
                 kpiWeekFilter.appendChild(opt);
             });
@@ -228,10 +415,7 @@
 
             const timestamps = JSON.parse(localStorage.getItem('ims_counter_timestamps_v1') || '[]');
             const counters = JSON.parse(localStorage.getItem('ims_daily_counters_v1') || '[]');
-            const attendance = [
-                    ...JSON.parse(localStorage.getItem('ims_daily_attendance_v1') || '[]'),
-                    ...JSON.parse(localStorage.getItem('ims_daily_counters_attendance_v1') || '[]')
-                ];
+            const attendance = JSON.parse(localStorage.getItem('ims_daily_counters_attendance_v1') || '[]');
             
             // Generate full date range first
             for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -265,41 +449,7 @@
                     Object.keys(data).forEach(k => data[k].dates[date] = { skus: 0, hc: 0, hours: 0 });
                 });
 
-                const sessions = {};
-                timestamps.forEach(log => {
-                    if(log.deleted) return;
-                    if(log.action === 'Start') {
-                        sessions[log.userId] = { start: log, area: log.areaType };
-                    } else if(log.action === 'End' && sessions[log.userId]) {
-                        const startLog = sessions[log.userId].start;
-                        const area = startLog.area || '';
-                        
-                        let match = false;
-                        if(areaFilter === 'Pick' && area.includes('Pick Bin')) match = true;
-                        if(areaFilter === 'Reserved' && !area.includes('Pick Bin')) match = true;
-                        
-                        if(match) {
-                            const info = getShiftFromTimestamp(log.timestamp);
-                            if(filteredDateArray.includes(info.date)) {
-                                const skus = parseInt(log.skus) || 0;
-                                const duration = (new Date(log.timestamp) - new Date(startLog.timestamp)) / 3600000;
-                                
-                                if(data[info.shift]) {
-                                    data[info.shift].dates[info.date].skus += skus;
-                                    data[info.shift].dates[info.date].hours += duration;
-                                    data[info.shift].totalOutput += skus;
-                                    data[info.shift].totalHours += duration;
-                                    
-                                    data['Overall'].dates[info.date].skus += skus;
-                                    data['Overall'].dates[info.date].hours += duration;
-                                    data['Overall'].totalOutput += skus;
-                                    data['Overall'].totalHours += duration;
-                                }
-                            }
-                        }
-                        delete sessions[log.userId];
-                    }
-                });
+                // Timestamps loop removed: Working Hours now fixed at 7.125 * HC
 
                 const dailyHc = {};
                 attendance.forEach(att => {
@@ -317,12 +467,33 @@
                             const hc = dailyHc[key] ? dailyHc[key].size : 0;
                             data[shift].dates[date].hc = hc;
                             data['Overall'].dates[date].hc += hc;
+                            
+                            // Fixed Working Hours: 7.125 per HC
+                            const hours = hc * 7.125;
+                            data[shift].dates[date].hours = hours;
+                            data['Overall'].dates[date].hours += hours;
                         }
                     });
                 });
 
                 counters.forEach(c => {
                     if(filteredDateArray.includes(c.date)) {
+                        // Calculate SKUs from daily counters data (Cycle count output)
+                        let skus = 0;
+                        if (areaFilter === 'Pick') {
+                            if (c.hourlyPickBin) skus = Object.values(c.hourlyPickBin).reduce((a,b) => a + (Number(b)||0), 0);
+                        } else if (areaFilter === 'Reserved') {
+                            if (c.hourlyReserved) skus = Object.values(c.hourlyReserved).reduce((a,b) => a + (Number(b)||0), 0);
+                            else if (c.hourlyActuals && !c.hourlyPickBin) skus = Object.values(c.hourlyActuals).reduce((a,b) => a + (Number(b)||0), 0); // Fallback
+                        }
+
+                        if(data[c.shift]) {
+                            data[c.shift].dates[c.date].skus += skus;
+                            data[c.shift].totalOutput += skus;
+                            data['Overall'].dates[c.date].skus += skus;
+                            data['Overall'].totalOutput += skus;
+                        }
+
                         let rate = 0;
                         if(areaFilter === 'Pick') rate = Number(c.pickRate) || 0;
                         else rate = Number(c.resRate) || 0;
@@ -345,7 +516,13 @@
                     filteredDateArray.forEach(date => {
                         const keyPrefix = `${areaFilter}|${shift}|${date}|`;
                         if (overrides[keyPrefix + 'skus'] !== undefined) data[shift].dates[date].skus = Number(overrides[keyPrefix + 'skus']);
-                        if (overrides[keyPrefix + 'hc'] !== undefined) data[shift].dates[date].hc = Number(overrides[keyPrefix + 'hc']);
+                        if (overrides[keyPrefix + 'hc'] !== undefined) {
+                            const newHc = Number(overrides[keyPrefix + 'hc']);
+                            data[shift].dates[date].hc = newHc;
+                            if (overrides[keyPrefix + 'hours'] === undefined) {
+                                data[shift].dates[date].hours = newHc * 7.125;
+                            }
+                        }
                         if (overrides[keyPrefix + 'hours'] !== undefined) data[shift].dates[date].hours = Number(overrides[keyPrefix + 'hours']);
                     });
 
@@ -377,6 +554,14 @@
                     });
                 });
 
+                // Recalculate Overall Totals
+                data['Overall'].totalOutput = 0;
+                data['Overall'].totalHours = 0;
+                filteredDateArray.forEach(date => {
+                    data['Overall'].totalOutput += data['Overall'].dates[date].skus;
+                    data['Overall'].totalHours += data['Overall'].dates[date].hours;
+                });
+
                 return data;
             };
 
@@ -401,7 +586,10 @@
                         const weekDates = weeks[mondayStr];
                         if (weekDates.some(wd => filteredDateArray.includes(wd))) {
                             const mon = new Date(mondayStr);
-                            const header = `Week of ${mon.toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
+                            const anchor = new Date('2024-12-30');
+                            let weekNum = Math.floor(Math.round((mon - anchor) / (1000 * 60 * 60 * 24)) / 7) + 1;
+                            if (weekNum > 52) weekNum = ((weekNum - 1) % 52) + 1;
+                            const header = `Week ${weekNum} (${mon.toLocaleDateString('en-US', {month:'short', day:'numeric'})})`;
                             columns.push({ label: header, dates: weekDates, type: 'week' });
                         }
                     });
@@ -417,19 +605,23 @@
                         weeks[monday].push(d);
                     });
 
-                    Object.keys(weeks).sort().forEach(monday => {
-                        const weekDates = weeks[monday];
+                    Object.keys(weeks).sort().forEach(mondayStr => {
+                        const weekDates = weeks[mondayStr];
                         weekDates.forEach(d => {
                             const dateObj = new Date(d);
                             const dayLabels = ['S', 'M', 'T', 'W', 'Th', 'F', 'S'];
                             const dayIdx = dateObj.getDay();
                             const dayName = dayLabels[dayIdx];
-                            const header = `${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()} ${dayName}`;
+                            const header = `${dayName}<br>${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()}`;
                             const isSunday = dayIdx === 0;
                             columns.push({ label: header, dates: [d], type: 'day', isSunday: isSunday });
                         });
                         // Add Week Total Column
-                        columns.push({ label: 'Week Total', dates: weekDates, type: 'total', isWeekTotal: true });
+                        const mon = new Date(mondayStr);
+                        const anchor = new Date('2024-12-30');
+                        let weekNum = Math.floor(Math.round((mon - anchor) / (1000 * 60 * 60 * 24)) / 7) + 1;
+                        if (weekNum > 52) weekNum = ((weekNum - 1) % 52) + 1;
+                        columns.push({ label: `Week ${weekNum} Total`, dates: weekDates, type: 'total', isWeekTotal: true });
                     });
                 }
 
@@ -448,12 +640,19 @@
                 html += `</tr></thead><tbody>`;
 
                 const shifts = ['1st Shift-(6am-2pm)', '2nd Shift-(2pm-10pm)', '3rd Shift-(10pm-6am)', 'Overall'];
-                const shiftLabels = {'1st Shift-(6am-2pm)': '1st Shift', '2nd Shift-(2pm-10pm)': '2nd Shift', '3rd Shift-(10pm-6am)': '3rd Shift', 'Overall': `${areaName} results / Overall`};
+                const shiftLabels = {'1st Shift-(6am-2pm)': '1st Shift', '2nd Shift-(2pm-10pm)': '2nd Shift', '3rd Shift-(10pm-6am)': '3rd Shift', 'Overall': 'All Shift'};
                 const particulars = ['# of sku', '# of HC', 'Working Hours', 'Productivity'];
 
                 shifts.forEach((shift, shiftIndex) => {
                     const rowData = data[shift];
-                    let targetAvg = rowData.targetCount > 0 ? Math.round(rowData.targetSum / rowData.targetCount) : 0;
+                    
+                    let targetAvg = 0;
+                    if (areaName === 'Reserved Bin') {
+                        targetAvg = (shift === 'Overall') ? 12 : 4;
+                    } else if (areaName === 'Pick Bin') {
+                        targetAvg = (shift === 'Overall') ? 66 : 22;
+                    }
+
                     let aveProd = rowData.totalHours > 0 ? Math.round(rowData.totalOutput / rowData.totalHours) : 0;
                     
                     // Use overrides if available
@@ -462,14 +661,27 @@
 
                     const isOverall = shift === 'Overall';
                     
+                    let aveProdClass = '';
+                    if (targetAvg > 0) {
+                        if (aveProd >= targetAvg) aveProdClass = ' kpi-success';
+                        else aveProdClass = ' kpi-failure';
+                    }
+
                     // Editable attributes for summary columns
                     const editTargetAttr = (!isOverall && !isWeekly) ? `contenteditable="true" class="sticky-col col-target editable-cell" onblur="saveKpiEdit(this, '${areaName}', '${shift}', null, 'target')"` : `class="sticky-col col-target"`;
-                    const editAveAttr = (!isOverall && !isWeekly) ? `contenteditable="true" class="sticky-col col-ave editable-cell" onblur="saveKpiEdit(this, '${areaName}', '${shift}', null, 'ave_prod')"` : `class="sticky-col col-ave"`;
+                    const editAveAttr = (!isOverall && !isWeekly) ? `contenteditable="true" class="sticky-col col-ave editable-cell${aveProdClass}" onblur="saveKpiEdit(this, '${areaName}', '${shift}', null, 'ave_prod')"` : `class="sticky-col col-ave${aveProdClass}"`;
                     
                     particulars.forEach((part, partIndex) => {
-                        html += `<tr>`;
+                        let trClass = '';
+                        if (part === 'Working Hours' || part === 'Productivity') {
+                            trClass = 'highlight-row';
+                        }
+                        html += `<tr class="${trClass}">`;
+                        if (shiftIndex === 0 && partIndex === 0) {
+                            html += `<td rowspan="${shifts.length * particulars.length}" class="sticky-col col-area" style="vertical-align: middle; font-weight: bold;">${areaName}</td>`;
+                        }
                         if (partIndex === 0) {
-                            html += `<td rowspan="4" class="sticky-col col-area">${areaName}</td><td rowspan="4" class="sticky-col col-shift" style="font-weight:bold;">${shiftLabels[shift]}</td><td rowspan="4" ${editTargetAttr}>${targetAvg}</td><td rowspan="4" ${editAveAttr}>${aveProd}</td>`;
+                            html += `<td rowspan="4" class="sticky-col col-shift" style="font-weight:bold;">${shiftLabels[shift]}</td><td rowspan="4" ${editTargetAttr}>${targetAvg}</td><td rowspan="4" ${editAveAttr}>${aveProd}</td>`;
                         }
                         html += `<td class="sticky-col col-part">${part}</td>`;
                         
@@ -487,16 +699,94 @@
                                 }
                             });
 
+                            let cls = col.isWeekTotal ? 'week-total-col' : '';
+                            if (col.isSunday) cls += ' sunday-col';
+
                             if (part === '# of sku') cellValue = sumSkus;
                             else if (part === '# of HC') cellValue = countHc > 0 ? Math.round(sumHc / countHc) : 0;
-                            else if (part === 'Working Hours') cellValue = sumHours.toFixed(2);
-                            else if (part === 'Productivity') cellValue = sumHours > 0 ? (sumSkus / sumHours).toFixed(2) : 0;
+                            else if (part === 'Working Hours') {
+                                let dailyHours = 7.125;
+                                if (shift === 'Overall') dailyHours = 21.375;
+                                cellValue = Number((dailyHours * col.dates.length).toFixed(3));
+                            }
+                            else if (part === 'Productivity') {
+                                const pVal = sumHours > 0 ? (sumSkus / sumHours) : 0;
+                                cellValue = pVal.toFixed(2);
+                                if (targetAvg > 0) {
+                                    if (pVal >= targetAvg) cls += ' kpi-success';
+                                    else cls += ' kpi-failure';
+                                }
+                            }
                             
-                            const cls = col.isWeekTotal ? 'week-total-col' : '';
-                            html += `<td class="${cls}">${cellValue}</td>`;
+                            let editAttr = '';
+                            if (!isOverall && col.type === 'day') {
+                                if (part === '# of sku') {
+                                    editAttr = `contenteditable="true" onblur="saveKpiEdit(this, '${areaName}', '${shift}', '${col.dates[0]}', 'skus')"`;
+                                    cls += ' editable-cell';
+                                } else if (part === '# of HC') {
+                                    editAttr = `contenteditable="true" onblur="saveKpiEdit(this, '${areaName}', '${shift}', '${col.dates[0]}', 'hc')"`;
+                                    cls += ' editable-cell';
+                                } else if (part === 'Working Hours') {
+                                    editAttr = `contenteditable="true" onblur="saveKpiEdit(this, '${areaName}', '${shift}', '${col.dates[0]}', 'hours')"`;
+                                    cls += ' editable-cell';
+                                }
+                            }
+                            html += `<td class="${cls}" ${editAttr}>${cellValue}</td>`;
                         });
                         html += `</tr>`;
                     });
+                });
+                html += `</tbody></table>`;
+
+                // Second Table: Target Output (Should # of SKU)
+                html += `<h5 style="margin: 20px 0 5px 0; color: #2752a7;">Target Output (Should # of SKU)</h5>`;
+                html += `<table class="kpi-table"><thead><tr>
+                    <th class="sticky-col col-area">Area</th>
+                    <th class="sticky-col col-shift">Shift</th>
+                    <th class="sticky-col col-target">Target/Hr</th>
+                    <th class="sticky-col col-ave">Ave.Prod</th>
+                    <th class="sticky-col col-part">Particulars</th>`;
+                
+                columns.forEach(col => { 
+                    let cls = col.isWeekTotal ? 'week-total-col' : '';
+                    if (col.isSunday) cls += ' sunday-col';
+                    html += `<th class="${cls}">${col.label}</th>`; 
+                });
+                html += `</tr></thead><tbody>`;
+
+                shifts.forEach((shift, shiftIndex) => {
+                    const rowData = data[shift];
+                    let targetAvg = 0;
+                    if (areaName === 'Reserved Bin') targetAvg = (shift === 'Overall') ? 12 : 4;
+                    else if (areaName === 'Pick Bin') targetAvg = (shift === 'Overall') ? 66 : 22;
+                    if (rowData.targetAvgOverride !== undefined) targetAvg = rowData.targetAvgOverride;
+
+                    html += `<tr>`;
+                    if (shiftIndex === 0) html += `<td rowspan="${shifts.length}" class="sticky-col col-area" style="vertical-align: middle; font-weight: bold;">${areaName}</td>`;
+                    html += `<td class="sticky-col col-shift" style="font-weight:bold;">${shiftLabels[shift]}</td>`;
+                    html += `<td class="sticky-col col-target">${targetAvg}</td>`;
+                    html += `<td class="sticky-col col-ave">-</td>`;
+                    html += `<td class="sticky-col col-part">Should # of SKU</td>`;
+
+                    columns.forEach(col => {
+                        let val = 0;
+                        if (shift === 'Overall') {
+                            // Sum of individual shifts
+                            ['1st Shift-(6am-2pm)', '2nd Shift-(2pm-10pm)', '3rd Shift-(10pm-6am)'].forEach(s => {
+                                const sData = data[s];
+                                let sTarget = (areaName === 'Reserved Bin') ? 4 : 22;
+                                if (sData.targetAvgOverride !== undefined) sTarget = sData.targetAvgOverride;
+                                col.dates.forEach(d => { if(sData.dates[d]) val += sData.dates[d].hours * sTarget; });
+                            });
+                        } else {
+                            col.dates.forEach(d => { if(rowData.dates[d]) val += rowData.dates[d].hours * targetAvg; });
+                        }
+                        
+                        let cls = col.isWeekTotal ? 'week-total-col' : '';
+                        if (col.isSunday) cls += ' sunday-col';
+                        html += `<td class="${cls}">${Math.round(val)}</td>`;
+                    });
+                    html += `</tr>`;
                 });
 
                 html += `</tbody></table>`;
@@ -508,6 +798,8 @@
 
             const pickData = getData('Pick');
             renderTable('kpi-pick-container', 'Pick Bin', pickData);
+            
+            renderKpiChart(filteredDateArray, reservedData, pickData, isWeekly);
             
             applyColumnVisibility();
         }
@@ -538,19 +830,114 @@
             document.querySelectorAll('.col-part').forEach(el => el.style.left = currentLeft + 'px');
         }
 
+        function renderKpiChart(dates, resData, pickData, isWeekly) {
+            const ctx = document.getElementById('kpi-trend-chart');
+            const metricSelect = document.getElementById('kpi-chart-metric');
+            const titleEl = document.getElementById('kpi-chart-title');
+            if (!ctx) return;
+
+            const metric = metricSelect ? metricSelect.value : 'productivity';
+            if(titleEl) titleEl.textContent = metric === 'productivity' ? 'Productivity Trend (Overall)' : 'Total Output Trend (Overall)';
+
+            let labels = [];
+            let resPoints = [];
+            let pickPoints = [];
+
+            if (isWeekly) {
+                const weeks = {};
+                const anchor = new Date('2024-12-30');
+                
+                dates.forEach(d => {
+                    const dateObj = new Date(d);
+                    const day = dateObj.getDay();
+                    const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); 
+                    const monday = new Date(new Date(d).setDate(diff));
+                    const mondayStr = monday.toISOString().split('T')[0];
+                    if (!weeks[mondayStr]) weeks[mondayStr] = [];
+                    weeks[mondayStr].push(d);
+                });
+
+                Object.keys(weeks).sort().forEach(mondayStr => {
+                    const weekDates = weeks[mondayStr];
+                    if (weekDates.some(wd => dates.includes(wd))) {
+                        const mon = new Date(mondayStr);
+                        let weekNum = Math.floor(Math.round((mon - anchor) / (1000 * 60 * 60 * 24)) / 7) + 1;
+                        if (weekNum > 52) weekNum = ((weekNum - 1) % 52) + 1;
+                        labels.push(`Week ${weekNum}`);
+
+                        let rSkus = 0, rHours = 0, pSkus = 0, pHours = 0;
+                        weekDates.forEach(d => {
+                            if (dates.includes(d)) {
+                                const rDay = resData['Overall'].dates[d];
+                                if (rDay) { rSkus += rDay.skus; rHours += rDay.hours; }
+                                const pDay = pickData['Overall'].dates[d];
+                                if (pDay) { pSkus += pDay.skus; pHours += pDay.hours; }
+                            }
+                        });
+                        
+                        if (metric === 'productivity') {
+                            resPoints.push(rHours > 0 ? (rSkus / rHours).toFixed(2) : 0);
+                            pickPoints.push(pHours > 0 ? (pSkus / pHours).toFixed(2) : 0);
+                        } else {
+                            resPoints.push(rSkus);
+                            pickPoints.push(pSkus);
+                        }
+                    }
+                });
+            } else {
+                labels = dates;
+                if (metric === 'productivity') {
+                    resPoints = dates.map(d => {
+                        const day = resData['Overall'].dates[d];
+                        return (day && day.hours > 0) ? (day.skus / day.hours).toFixed(2) : 0;
+                    });
+                    pickPoints = dates.map(d => {
+                        const day = pickData['Overall'].dates[d];
+                        return (day && day.hours > 0) ? (day.skus / day.hours).toFixed(2) : 0;
+                    });
+                } else {
+                    resPoints = dates.map(d => { const day = resData['Overall'].dates[d]; return day ? day.skus : 0; });
+                    pickPoints = dates.map(d => { const day = pickData['Overall'].dates[d]; return day ? day.skus : 0; });
+                }
+            }
+
+            if (kpiChartInstance) kpiChartInstance.destroy();
+            kpiChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Reserved Bin', data: resPoints, borderColor: '#ef6c00', backgroundColor: 'rgba(239, 108, 0, 0.1)', tension: 0.3, fill: true },
+                        { label: 'Pick Bin', data: pickPoints, borderColor: '#1565c0', backgroundColor: 'rgba(21, 101, 192, 0.1)', tension: 0.3, fill: true }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: metric === 'productivity' ? 'Productivity (SKU/Hr)' : 'Total Output (SKUs)' } } }
+                }
+            });
+        }
+
         window.saveKpiEdit = function(el, area, shift, date, metric) {
+            let storageArea = area;
+            if (area === 'Reserved Bin') storageArea = 'Reserved';
+            else if (area === 'Pick Bin') storageArea = 'Pick';
+
             const val = el.innerText.trim();
             const overrides = JSON.parse(localStorage.getItem('ims_kpi_overrides_v1') || '{}');
             let key = '';
             
             if (date) {
-                key = `${area}|${shift}|${date}|${metric}`;
+                key = `${storageArea}|${shift}|${date}|${metric}`;
             } else {
-                key = `${area}|${shift}|${metric}`;
+                key = `${storageArea}|${shift}|${metric}`;
             }
             
             overrides[key] = val;
             localStorage.setItem('ims_kpi_overrides_v1', JSON.stringify(overrides));
+            
+            if(window.addNotification) window.addNotification('Saved', 'success');
             
             // Re-render to update totals/averages
             renderKpiReport();
@@ -561,14 +948,22 @@
         });
 
         // Initial Load
-        const now = new Date();
-        const year = now.getFullYear();
-        const firstJan = new Date(year, 0, 1);
-        const day = firstJan.getDay();
-        const diff = firstJan.getDate() - day + (day === 0 ? -6 : 1); // Monday start
-        const firstMonday = new Date(firstJan.setDate(diff));
-        document.getElementById('kpi-start-date').value = firstMonday.toISOString().split('T')[0];
-        document.getElementById('kpi-end-date').value = now.toISOString().split('T')[0];
+        const savedStart = localStorage.getItem('ims_kpi_start_date');
+        const savedEnd = localStorage.getItem('ims_kpi_end_date');
+
+        if (savedStart && savedEnd) {
+            document.getElementById('kpi-start-date').value = savedStart;
+            document.getElementById('kpi-end-date').value = savedEnd;
+        } else {
+            const now = new Date();
+            const year = now.getFullYear();
+            const firstJan = new Date(year, 0, 1);
+            const day = firstJan.getDay();
+            const diff = firstJan.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+            const firstMonday = new Date(firstJan.setDate(diff));
+            document.getElementById('kpi-start-date').value = firstMonday.toISOString().split('T')[0];
+            document.getElementById('kpi-end-date').value = now.toISOString().split('T')[0];
+        }
         updateWeekOptions();
         renderKpiReport();
     });
