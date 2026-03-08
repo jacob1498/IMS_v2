@@ -1043,8 +1043,9 @@
             <h3 style="margin:0">Set Shift Requirements (Daily)</h3>
             <button class="icon-btn close-modal">&times;</button>
         </div>
-        <div style="margin-bottom:10px;">
-            <select id="req-role-filter" style="padding:6px; border:1px solid #ccc; border-radius:4px; width:100%;"><option value="">All Sub Roles</option></select>
+        <div style="margin-bottom:10px; display:flex; gap:10px;">
+            <select id="req-role-filter" style="padding:6px; border:1px solid #ccc; border-radius:4px; flex:1;"><option value="">All Sub Roles</option></select>
+            <button id="add-req-role-btn" class="icon-btn" style="background:#27ae60; color:white; padding:6px 12px; font-size:12px;">+ Add Role</button>
         </div>
         <div style="overflow-x:auto; max-height: 60vh;">
             <table class="report-table" id="req-table">
@@ -1054,6 +1055,8 @@
                         <th>1st Shift</th>
                         <th>2nd Shift</th>
                         <th>3rd Shift</th>
+                        <th>Total</th>
+                        <th style="width:50px;">Action</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -1769,6 +1772,9 @@
             <button id="upload-sku-desc-btn" class="icon-btn" style="justify-content:flex-start; width:100%; padding:8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px; width:16px; height:16px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Upload Master List
             </button>
+            <button id="add-manual-sku-btn" class="icon-btn" style="justify-content:flex-start; width:100%; padding:8px; color:#27ae60;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px; width:16px; height:16px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add Manual SKU
+            </button>
             <button id="clear-sku-master-btn" class="icon-btn" style="justify-content:flex-start; width:100%; padding:8px; color:#d9534f;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px; width:16px; height:16px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg> Clear Master List
             </button>
@@ -1919,6 +1925,29 @@
         </div>
         <div style="text-align:right; margin-top:10px;">
             <button id="export-evaluation-btn" class="icon-btn" style="background:#2752a7; color:white; padding:6px 12px;">Export CSV</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- Add Manual SKU Modal -->
+  <div id="add-sku-modal" class="modal hidden" style="z-index: 10070;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card" style="max-width: 400px; margin: 150px auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0">Add Manual SKU</h3>
+            <button class="icon-btn close-modal">&times;</button>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="font-size:12px; font-weight:bold;">SKU / Item Code</label>
+            <input type="text" id="manual-sku-code" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="font-size:12px; font-weight:bold;">Description</label>
+            <input type="text" id="manual-sku-desc" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+        </div>
+        <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+            <button class="icon-btn close-modal" style="border:1px solid #ccc;">Cancel</button>
+            <button id="save-manual-sku-btn" class="icon-btn" style="background:#2752a7; color:white;">Save</button>
         </div>
     </div>
   </div>
@@ -3070,30 +3099,37 @@
         }
 
         // Requirements Modal Logic
+        const DEFAULT_REQ_ROLES = ["Cycle Counter", "TL", "OIC", "Encoder", "SBD Checker", "RTV", "Damaged Checker", "B1T1 Checker", "Validator", "Putaway Validator", "HVI Support", "Projects", "HO-Cancelled"];
+
+        function getReqRoles() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('ims_req_roles_v1'));
+                if (stored && Array.isArray(stored)) return stored;
+            } catch(e) {}
+            return DEFAULT_REQ_ROLES;
+        }
+
+        function saveReqRoles(roles) {
+            localStorage.setItem('ims_req_roles_v1', JSON.stringify(roles));
+        }
+
         if(setReqBtn) {
             setReqBtn.addEventListener('click', () => {
                 const reqs = loadRequirements();
                 const tbody = document.querySelector('#req-table tbody');
-                const subRolesList = ["Cycle Counter", "TL", "OIC", "Encoder", "SBD Checker", "RTV", "Damaged Checker", "B1T1 Checker", "Validator", "Putaway Validator", "HVI Support", "Projects", "HO-Cancelled"];
+                const subRolesList = getReqRoles();
                 const shiftsList = ["1st Shift-(6am-2pm)", "2nd Shift-(2pm-10pm)", "3rd Shift-(10pm-6am)"];
                 const roleFilter = document.getElementById('req-role-filter');
                 
                 // Populate filter
-                if(roleFilter && roleFilter.options.length <= 1) {
+                if(roleFilter) {
+                    roleFilter.innerHTML = '<option value="">All Sub Roles</option>';
                     subRolesList.forEach(r => {
                         const opt = document.createElement('option');
                         opt.value = r;
                         opt.textContent = r;
                         roleFilter.appendChild(opt);
                     });
-                }
-                
-                // Add Total Column Header if missing
-                const theadRow = document.querySelector('#req-table thead tr');
-                if (theadRow && theadRow.children.length === 4) {
-                    const th = document.createElement('th');
-                    th.textContent = 'Total';
-                    theadRow.appendChild(th);
                 }
 
                 tbody.innerHTML = '';
@@ -3109,6 +3145,7 @@
                         html += `<td><input type="number" class="req-input" data-key="${key}" value="${val}" style="width:60px; padding:4px; border:1px solid #ccc; border-radius:4px;"></td>`;
                     });
                     html += `<td class="row-total" style="font-weight:bold; text-align:center;">${rowTotal}</td>`;
+                    html += `<td style="text-align:center;"><button class="icon-btn delete-req-role-btn" data-role="${role}" style="color:#d9534f; padding:2px;">&times;</button></td>`;
                     tr.innerHTML = html;
                     tbody.appendChild(tr);
                 });
@@ -3136,7 +3173,7 @@
                         row.querySelector('.row-total').textContent = rTotal;
                     });
                     const grand = col1 + col2 + col3;
-                    tfoot.innerHTML = `<tr style="background:#f0f0f0; font-weight:bold;"><td>Grand Total</td><td>${col1}</td><td>${col2}</td><td>${col3}</td><td style="text-align:center;">${grand}</td></tr>`;
+                    tfoot.innerHTML = `<tr style="background:#f0f0f0; font-weight:bold;"><td>Grand Total</td><td>${col1}</td><td>${col2}</td><td>${col3}</td><td style="text-align:center;">${grand}</td><td></td></tr>`;
                 };
                 
                 updateTotals();
@@ -3145,6 +3182,38 @@
                 });
 
                 reqModal.classList.remove('hidden');
+            });
+        }
+
+        // Add Role Button Logic
+        const addReqRoleBtn = document.getElementById('add-req-role-btn');
+        if(addReqRoleBtn) {
+            addReqRoleBtn.addEventListener('click', () => {
+                const newRole = prompt("Enter new role name:");
+                if(newRole && newRole.trim()) {
+                    const roles = getReqRoles();
+                    if(roles.includes(newRole.trim())) {
+                        alert('Role already exists.');
+                        return;
+                    }
+                    roles.push(newRole.trim());
+                    saveReqRoles(roles);
+                    setReqBtn.click(); // Re-render
+                }
+            });
+        }
+
+        // Delete Role Logic (Delegated)
+        const reqTable = document.getElementById('req-table');
+        if(reqTable) {
+            reqTable.addEventListener('click', (e) => {
+                if(e.target.classList.contains('delete-req-role-btn')) {
+                    const role = e.target.dataset.role;
+                    if(!confirm(`Delete role "${role}"? This will hide it from requirements.`)) return;
+                    const roles = getReqRoles().filter(r => r !== role);
+                    saveReqRoles(roles);
+                    setReqBtn.click(); // Re-render
+                }
             });
         }
 
@@ -6043,6 +6112,38 @@
             });
         }
 
+        // Add Manual SKU Logic
+        const addManualSkuBtn = document.getElementById('add-manual-sku-btn');
+        const addSkuModal = document.getElementById('add-sku-modal');
+        const saveManualSkuBtn = document.getElementById('save-manual-sku-btn');
+
+        if (addManualSkuBtn) {
+            addManualSkuBtn.addEventListener('click', () => {
+                if (valActionsModal) valActionsModal.classList.add('hidden');
+                document.getElementById('manual-sku-code').value = '';
+                document.getElementById('manual-sku-desc').value = '';
+                addSkuModal.classList.remove('hidden');
+            });
+        }
+
+        if (saveManualSkuBtn) {
+            saveManualSkuBtn.addEventListener('click', () => {
+                const sku = document.getElementById('manual-sku-code').value.trim();
+                const desc = document.getElementById('manual-sku-desc').value.trim();
+                if (!sku || !desc) { alert('Both SKU and Description are required.'); return; }
+                
+                let masterMap = {};
+                try { masterMap = JSON.parse(localStorage.getItem('ims_master_desc_v1') || '{}'); } catch(e) {}
+                if (masterMap[sku] && !confirm(`SKU ${sku} already exists. Overwrite?`)) return;
+                
+                masterMap[sku] = desc;
+                localStorage.setItem('ims_master_desc_v1', JSON.stringify(masterMap));
+                showToast(`SKU ${sku} saved.`);
+                updateSkuMasterStatus();
+                addSkuModal.classList.add('hidden');
+            });
+        }
+
         // Bulk Task Assignment
         const downloadTaskTemplateBtn = document.getElementById('download-task-template-btn');
         const uploadBulkTasksBtn = document.getElementById('upload-bulk-tasks-btn');
@@ -6102,6 +6203,19 @@
 
                         const tasks = getValidationTasks();
                         let count = 0;
+                        let duplicates = 0;
+
+                        // Get current shift info for validation to avoid duplicates
+                        const now = new Date();
+                        const currentShiftInfo = getShiftFromTimestamp(now.toISOString());
+                        const existingSkusInShift = new Set();
+                        
+                        tasks.forEach(t => {
+                            const tInfo = getShiftFromTimestamp(t.timestamp);
+                            if (tInfo.date === currentShiftInfo.date && tInfo.shift === currentShiftInfo.shift) {
+                                existingSkusInShift.add((t.sku || '').toUpperCase());
+                            }
+                        });
                         
                         // Get SKU Master for description lookup if missing
                         let masterMap = {};
@@ -6121,6 +6235,12 @@
                             const opsValidator = (opsValIdx > -1) ? cols[opsValIdx] : '';
                             
                             if(sku && qty) {
+                                // Check for duplicate in current shift
+                                if (existingSkusInShift.has(sku.toUpperCase())) {
+                                    duplicates++;
+                                    continue;
+                                }
+
                                 if(!desc && masterMap[sku]) desc = masterMap[sku];
                                 
                                 tasks.push({
@@ -6136,11 +6256,14 @@
                                     status: 'Pending'
                                 });
                                 count++;
+                                existingSkusInShift.add(sku.toUpperCase()); // Prevent duplicates within the same file
                             }
                         }
                         saveValidationTasks(tasks);
                         renderValidationTasks();
-                        showToast(`${count} tasks assigned.`);
+                        let msg = `${count} tasks assigned.`;
+                        if (duplicates > 0) msg += ` ${duplicates} duplicates skipped (same shift).`;
+                        showToast(msg, duplicates > 0 ? 'warning' : 'success');
                         uploadBulkTasksFile.value = '';
                     } catch (err) {
                         showToast('Failed to import tasks. Please check file format.', 'error');
