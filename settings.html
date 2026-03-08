@@ -131,6 +131,17 @@
           </select>
         </div>
 
+        <div style="margin-bottom: 15px;">
+          <label style="display:block; margin-bottom: 5px; font-weight: bold;">Manual Status Reporting Reminder</label>
+          <div id="reminder-times-list" style="display:flex; flex-direction:column; gap:5px; margin-bottom:5px;"></div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" id="add-reminder-time-btn" class="icon-btn" style="border:1px solid #ccc; padding:6px 10px; font-size:12px;">+ Add Time</button>
+            <button type="button" id="set-shift-ends-btn" class="icon-btn" style="border:1px solid #ccc; padding:6px 10px; font-size:12px;">Set Shift Ends</button>
+            <button type="button" id="test-reminder-btn" class="icon-btn" style="border:1px solid #ccc; padding:6px 10px; font-size:12px;">Test</button>
+          </div>
+          <p class="muted" style="font-size: 11px; margin-top: 4px;">Set daily times to be reminded to report statuses.</p>
+        </div>
+
         <div class="tracker-container" style="margin-top: 20px;">
                 <h3>Storage Status</h3>
                 <div class="form-group">
@@ -147,19 +158,24 @@
 
 
 
-        <button type="submit">Save Changes</button>
+        <button type="submit" style="width: 100%;">Save Changes</button>
       </form>
+
+      <div style="max-width: 400px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+        <h3 style="color: #e74c3c;">Danger Zone</h3>
+        <p class="muted">This action is destructive and cannot be undone.</p>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <input type="checkbox" id="enable-danger-zone" style="width:auto;">
+            <label for="enable-danger-zone" style="color:#e74c3c; font-weight:bold; margin:0; cursor:pointer;">Enable Deletion</label>
+        </div>
+        <button type="button" id="clear-all-data-btn" disabled style="background: #e74c3c; color: white; border: none; width: 100%; justify-content: center; padding: 10px; opacity: 0.5; cursor: not-allowed;">Clear All Application Data</button>
+      </div>
     </div>
 
   </main>
 
   <script src="app.js"></script>
   <script>
-    // Ensure sidebar toggle works by re-initializing if needed or relying on app.js
-    // app.js handles sidebar toggle on DOMContentLoaded
-    // app.js handles clock update
-    // app.js handles user auth display
-
     // Check admin role for Clear Logs button
     const STORAGE_KEY_LOGS = 'ims_system_logs_v1';
     const role = sessionStorage.getItem('dms_auth_role_v1');
@@ -209,9 +225,42 @@
     // Settings Form Logic
     const settingsForm = document.getElementById('settings-form');
     const themeSelect = document.getElementById('theme-select');
+    const testReminderBtn = document.getElementById('test-reminder-btn');
+    const reminderList = document.getElementById('reminder-times-list');
+    const addTimeBtn = document.getElementById('add-reminder-time-btn');
+    const setShiftEndsBtn = document.getElementById('set-shift-ends-btn');
     
     if(themeSelect){
       themeSelect.value = localStorage.getItem('ims_theme') || 'light';
+    }
+
+    function addTimeInput(value = '') {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.gap = '5px';
+        div.innerHTML = `<input type="time" class="reminder-time-input" value="${value}" style="flex:1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"><button type="button" class="icon-btn remove-time-btn" style="color:#e74c3c; border:1px solid #ccc; padding:0 10px;">&times;</button>`;
+        div.querySelector('.remove-time-btn').addEventListener('click', () => div.remove());
+        reminderList.appendChild(div);
+    }
+
+    const savedTimes = localStorage.getItem('ims_status_reminder_time');
+    if (savedTimes) {
+        let times = [];
+        try { times = JSON.parse(savedTimes); } catch(e) { times = savedTimes.split(','); }
+        if(!Array.isArray(times)) times = [savedTimes];
+        times.forEach(t => { if(t) addTimeInput(t); });
+    } else {
+        addTimeInput();
+    }
+
+    if(addTimeBtn) addTimeBtn.addEventListener('click', () => addTimeInput());
+    if(setShiftEndsBtn) setShiftEndsBtn.addEventListener('click', () => { reminderList.innerHTML = ''; addTimeInput('14:00'); addTimeInput('22:00'); addTimeInput('06:00'); });
+
+    if(testReminderBtn){
+      testReminderBtn.addEventListener('click', () => {
+        if(window.addNotification) window.addNotification("🔔 Reminder: Please update your manual status report.", "reminder");
+        else alert("🔔 Reminder: Please update your manual status report.");
+      });
     }
 
     if(settingsForm){
@@ -219,8 +268,40 @@
         e.preventDefault();
         const theme = themeSelect ? themeSelect.value : 'light';
         localStorage.setItem('ims_theme', theme);
+        
+        const times = Array.from(document.querySelectorAll('.reminder-time-input')).map(i => i.value).filter(v => v);
+        localStorage.setItem('ims_status_reminder_time', JSON.stringify(times));
+
         if(window.applyTheme) window.applyTheme();
         alert('Settings saved!');
+      });
+    }
+
+    const clearDataBtn = document.getElementById('clear-all-data-btn');
+    const enableDangerZone = document.getElementById('enable-danger-zone');
+
+    if (enableDangerZone && clearDataBtn) {
+        enableDangerZone.addEventListener('change', (e) => {
+            clearDataBtn.disabled = !e.target.checked;
+            clearDataBtn.style.opacity = e.target.checked ? '1' : '0.5';
+            clearDataBtn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
+        });
+    }
+
+    if (clearDataBtn) {
+      clearDataBtn.addEventListener('click', () => {
+        const code = prompt("Enter Supervisor Code to confirm deletion:");
+        if (code !== 'delete all' && code !== '12345' && code !== 'admin') {
+            alert("Invalid Supervisor Code.");
+            return;
+        }
+        if (confirm('WARNING: Are you sure you want to delete ALL application data? This will log you out and cannot be undone.')) {
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          alert('All data has been cleared. You will now be redirected to the login page.');
+          window.location.href = 'index.html';
+        }
       });
     }
 
