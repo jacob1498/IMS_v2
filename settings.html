@@ -284,6 +284,82 @@
                 </ul>
             </div>
 
+            <div class="card" style="padding: 20px; margin-bottom: 20px; border: 1px solid #eee; box-shadow: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                    <h4 style="color: var(--accent); margin: 0;">Quick Tutorials</h4>
+                    <button type="button" id="toggle-tutorials-btn" class="icon-btn" style="font-size:12px; padding:4px 8px; border:1px solid #ccc; background:transparent;">Hide</button>
+                </div>
+                
+                <div id="tutorials-content">
+                <div style="margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 4px;">All IC Attendance</h5>
+                    <p style="font-size: 13px; line-height: 1.6; color: #555; margin: 0 0 8px 0;">
+                        Manage daily attendance, shifts, and user database.
+                    </p>
+                    <ol style="margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                        <li><strong>Add Entry:</strong> Manually log attendance or use <strong>Quick Time In</strong> for fast entry.</li>
+                        <li><strong>Filters:</strong> Filter records by Role, Status, or Job Description.</li>
+                        <li><strong>IC Master:</strong> Manage the user database (add/edit users).</li>
+                        <li><strong>Export:</strong> Download attendance data as CSV or Excel.</li>
+                    </ol>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Daily Cycle Count</h5>
+                    <p style="font-size: 13px; line-height: 1.6; color: #555; margin: 0 0 8px 0;">
+                        Track daily counting assignments, targets, and hourly output.
+                    </p>
+                    <ol style="margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                        <li><strong>Assignments:</strong> Assign counters to shifts and set Pick/Reserved targets.</li>
+                        <li><strong>Monitor:</strong> View hourly progress and cell status in the Sub Area Monitor.</li>
+                        <li><strong>Timestamp:</strong> Track individual counting sessions (Start/End/Break).</li>
+                        <li><strong>Reports:</strong> Generate Daily Output Reports to view variance and completion.</li>
+                    </ol>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Analytics & Reports</h5>
+                    <p style="font-size: 13px; line-height: 1.6; color: #555; margin: 0 0 8px 0;">
+                        Visualize performance metrics and generate detailed reports.
+                    </p>
+                    <ol style="margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                        <li><strong>Dashboard:</strong> View key metrics for Attendance, Validation, and Cycle Counting.</li>
+                        <li><strong>Charts:</strong> Analyze trends over time (e.g., Daily Task Trend, Validator Performance).</li>
+                        <li><strong>Reports:</strong> Generate and download detailed CSV/Excel reports.</li>
+                        <li><strong>KPI:</strong> Access the KPI Dashboard for productivity analysis.</li>
+                    </ol>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Timestamp (Daily Cycle Count)</h5>
+                    <p style="font-size: 13px; line-height: 1.6; color: #555; margin: 0 0 8px 0;">
+                        Track active counting time and productivity.
+                    </p>
+                    <ol style="margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                        <li>Go to <strong>Daily Cycle Count</strong> > <strong>Timestamp</strong> (or sidebar shortcut).</li>
+                        <li>Enter <strong>User ID</strong> (must be in Attendance).</li>
+                        <li>Click <strong>Start Counting</strong>. Select Area (Pick/Reserved) if prompted.</li>
+                        <li>Use <strong>Break Out</strong> / <strong>Break In</strong> for breaks.</li>
+                        <li>Click <strong>End Counting</strong> when done. Input <strong>Pallets</strong> and <strong>SKUs</strong> to log performance.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h5 style="margin: 0 0 8px 0; color: #333; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Validators View (All IC Attendance)</h5>
+                    <p style="font-size: 13px; line-height: 1.6; color: #555; margin: 0 0 8px 0;">
+                        Assign and manage validation tasks.
+                    </p>
+                    <ol style="margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                        <li>Go to <strong>All IC Attendance</strong> > <strong>Validators View</strong>.</li>
+                        <li>Click <strong>Add Task</strong> (or floating button) to create a validation request.</li>
+                        <li>Assign tasks to specific validators or leave as Unassigned (Pending).</li>
+                        <li>Track progress in <strong>Assigned</strong> and <strong>Resolved</strong> tabs.</li>
+                        <li>Validators mark tasks as <strong>Resolved</strong> (with findings) or <strong>Unresolved</strong>.</li>
+                    </ol>
+                </div>
+                </div>
+            </div>
+
             <div style="text-align: center; margin-top: 40px; color: #7f8c8d; font-style: italic;">
                 <p style="font-weight: bold; font-size: 14px;">"Initiative by Jaime Hutalla"</p>
                 <p style="font-size: 12px;">Version 1.0 (2025)</p>
@@ -721,6 +797,18 @@
 
     // Initialize storage info
     updateStorageInfo();
+
+    // Tutorials Toggle
+    const toggleTutorialsBtn = document.getElementById('toggle-tutorials-btn');
+    const tutorialsContent = document.getElementById('tutorials-content');
+    
+    if(toggleTutorialsBtn && tutorialsContent) {
+        toggleTutorialsBtn.addEventListener('click', () => {
+            const isHidden = tutorialsContent.style.display === 'none';
+            tutorialsContent.style.display = isHidden ? 'block' : 'none';
+            toggleTutorialsBtn.textContent = isHidden ? 'Hide' : 'Show';
+        });
+    }
 
   </script>
 </body>
