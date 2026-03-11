@@ -1845,6 +1845,8 @@
             let totalPallets = 0; let totalSkus = 0; let totalDurationMinutes = 0;
             let totalPickSkus = 0; let totalReservedSkus = 0;
             
+            const detailedBreakdown = [];
+
             // Group logs by user
             const logsByUser = {};
             timestamps.forEach(l => { 
@@ -1913,6 +1915,20 @@
                                 if (dur > 0) {
                                     userStats[uid].duration += dur;
                                     totalDurationMinutes += (dur / 60000);
+
+                                    // Add to detailed breakdown
+                                    const info = getShiftFromTimestamp(l.timestamp);
+                                    const att = attendance.find(a => a.userId === uid && a.date === info.date) || attendance.find(a => a.userId === uid);
+                                    detailedBreakdown.push({
+                                        date: info.date,
+                                        shift: info.shift,
+                                        areaType: currentStart.areaType || 'Unknown',
+                                        userId: uid,
+                                        name: att ? att.name : uid,
+                                        skus: s,
+                                        pallets: p,
+                                        duration: dur / 60000 // in minutes
+                                    });
                                 }
                             }
                         }
@@ -2024,6 +2040,24 @@
             });
             const wsRanking = XLSX.utils.aoa_to_sheet(rankingData);
             XLSX.utils.book_append_sheet(wb, wsRanking, "Performance Ranking");
+
+            // New Sheet: Detailed Breakdown
+            const breakdownData = [['Date', 'Shift', 'Area Type', 'User ID', 'Name', 'SKUs', 'Pallets', 'Duration (min)']];
+            detailedBreakdown.sort((a,b) => (a.date.localeCompare(b.date)) || a.shift.localeCompare(b.shift) || a.name.localeCompare(b.name));
+            detailedBreakdown.forEach(s => {
+                breakdownData.push([
+                    s.date,
+                    s.shift,
+                    s.areaType,
+                    s.userId,
+                    s.name,
+                    s.skus,
+                    s.pallets,
+                    parseFloat(s.duration.toFixed(2))
+                ]);
+            });
+            const wsBreakdown = XLSX.utils.aoa_to_sheet(breakdownData);
+            XLSX.utils.book_append_sheet(wb, wsBreakdown, "Detailed Breakdown");
 
             XLSX.writeFile(wb, fileName);
         });
