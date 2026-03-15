@@ -1308,12 +1308,12 @@
         </div>
 
         <!-- Main Content -->
-        <div style="display:flex; gap:15px; flex:1; overflow:hidden;">
+        <div style="display:flex; gap:15px; flex:1; overflow:hidden;"> <!-- Main two-column container -->
             
-            <!-- 2. Left Side (60%) -->
-            <div style="flex:6; display:flex; flex-direction:column; gap:15px; overflow:hidden;">
-                <!-- Table 1: Pending -->
-                <div id="val-tasks-card" class="card" style="flex:1; display:flex; flex-direction:column; margin:0; padding:10px;">
+            <!-- Left Column (70% width) -->
+            <div style="flex: 7; display: flex; flex-direction: column; gap: 15px; overflow: hidden;">
+                <!-- Top 70% height: Task Tables -->
+                <div id="val-tasks-card" class="card" style="flex: 7; display:flex; flex-direction:column; margin:0; padding:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                         <div class="att-tabs" style="margin-bottom:0; border-bottom:none;">
                             <button class="att-tab active" onclick="openValTab(event, 'tab-val-pending')">Pending</button>
@@ -1539,12 +1539,18 @@
                         </div>
                     </div>
                 </div>
+                <!-- Bottom 30% height: New Cards/Analytics -->
+                <div id="new-analytics-area" class="card" style="flex: 3; display:flex; flex-direction:column; margin:0; padding:10px;">
+                    <h4 style="margin:0 0 10px 0; color:#2752a7;">Hourly Progress Chart</h4>
+                    <div style="flex:1; position:relative; min-height:0;">
+                        <!-- Placeholder for new chart -->
+                        <canvas id="hourly-progress-chart"></canvas>
+                    </div>
+                </div>
             </div>
 
-            <!-- 3. Right Side (40%) -->
-            <div style="flex:4; display:flex; flex-direction:column; gap:15px; overflow:hidden;">
-                
-                <!-- Middle: Status Chart -->
+            <!-- Right Column (30% width) -->
+            <div style="flex: 3; display: flex; flex-direction: column; gap: 15px; overflow: hidden;">
                 <div class="card" style="margin:0; padding:10px; min-height: 220px; display:flex; flex-direction:column;">
                     <div style="display:flex; gap:15px; flex:1;">
                         <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
@@ -1570,50 +1576,52 @@
                     </div>
                 </div>
 
-                <!-- Bottom: Available Validators -->
                 <div class="card" style="flex:1; display:flex; flex-direction:column; margin:0; padding:10px;">
                     <h4 style="margin:0 0 10px 0; color:#2752a7;">Available IC Validators</h4>
                     <div style="flex:1; overflow:auto;">
                         <table class="report-table" style="width:100%; table-layout: auto; white-space: nowrap; font-size: 11px;">
-                    <thead>
-                        <tr>
-                            <th style="position:sticky; top:0; z-index:1;">User ID</th>
-                            <th style="position:sticky; top:0; z-index:1;">Name</th>
-                            <th style="position:sticky; top:0; z-index:1;">Shift</th>
-                            <th style="position:sticky; top:0; z-index:1;">Pending</th>
-                            <th style="position:sticky; top:0; z-index:1;">Resolved</th>
-                            <th style="position:sticky; top:0; z-index:1;">Resolved Qty</th>
-                            <th style="position:sticky; top:0; z-index:1;">Unresolved</th>
-                            <th style="position:sticky; top:0; z-index:1;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="validators-tbody"></tbody>
-                </table>
-            </div>
+                            <thead>
+                                <tr>
+                                    <th style="position:sticky; top:0; z-index:1;">User ID</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Name</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Shift</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Pending</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Resolved</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Resolved Qty</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Unresolved</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="validators-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="flex:1; display:flex; flex-direction:column; margin:0; padding:10px;">
+                    <h4 style="margin:0 0 10px 0; color:#e74c3c;">Timeout IC Validators</h4>
+                    <div style="flex:1; overflow:auto;">
+                        <table class="report-table" style="width:100%; table-layout: auto; white-space: nowrap; font-size: 11px;">
+                            <thead>
+                                <tr>
+                                    <th style="position:sticky; top:0; z-index:1;">User ID</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Name</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Shift</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Pending</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Resolved</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Resolved Qty</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Unresolved</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Total</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timeout-validators-tbody"></tbody>
+                        </div>
+                    </div>
+                </div>
+
+                
         </div>
 
-        <!-- Bottom: Timeout Validators -->
-        <div class="card" style="flex:1; display:flex; flex-direction:column; margin:0; padding:10px;">
-            <h4 style="margin:0 0 10px 0; color:#e74c3c;">Timeout IC Validators</h4>
-            <div style="flex:1; overflow:auto;">
-                <table class="report-table" style="width:100%; table-layout: auto; white-space: nowrap; font-size: 11px;">
-                    <thead>
-                        <tr>
-                            <th style="position:sticky; top:0; z-index:1;">User ID</th>
-                            <th style="position:sticky; top:0; z-index:1;">Name</th>
-                            <th style="position:sticky; top:0; z-index:1;">Shift</th>
-                            <th style="position:sticky; top:0; z-index:1;">Pending</th>
-                            <th style="position:sticky; top:0; z-index:1;">Resolved</th>
-                            <th style="position:sticky; top:0; z-index:1;">Resolved Qty</th>
-                            <th style="position:sticky; top:0; z-index:1;">Unresolved</th>
-                            <th style="position:sticky; top:0; z-index:1;">Total</th>
-                            <th style="position:sticky; top:0; z-index:1;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="timeout-validators-tbody"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
     <button id="fab-add-task-btn" class="fab-btn" title="Open Add Task Widget" style="z-index:10005;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -3982,6 +3990,7 @@
         let valReasonChart = null;
         let valTrendChart = null;
         let valHourlyChart = null;
+        let hourlyProgressChart = null;
         
         // Filters
         let valFilterAssigned1 = '';
@@ -4714,6 +4723,7 @@
 
             updateValBulkButtons();
             renderValAnalytics();
+            renderHourlyProgressChart();
         }
 
         function updateValStatusChart(resolvedCount, pendingCount, unresolvedCount, assignedCount) {
@@ -4765,6 +4775,91 @@
                 <td style="padding:8px; text-align:right; font-size:10px;">100%</td>
             `;
             tbody.appendChild(totalTr);
+        }
+
+        function renderHourlyProgressChart() {
+            const ctx = document.getElementById('hourly-progress-chart');
+            if (!ctx) return;
+
+            let tasks = getValidationTasks();
+            
+            const valStart = document.getElementById('val-start-date');
+            const valEnd = document.getElementById('val-end-date');
+            const startStr = (valStart && valStart.value) || globalStartDate.value;
+            const endStr = (valEnd && valEnd.value) || globalEndDate.value;
+            const shiftFilter = document.getElementById('val-view-shift') ? document.getElementById('val-view-shift').value : '';
+
+            if (startStr || endStr) {
+                tasks = tasks.filter(t => {
+                    const shiftInfo = getShiftFromTimestamp(t.timestamp);
+                    return (!startStr || shiftInfo.date >= startStr) && (!endStr || shiftInfo.date <= endStr);
+                });
+            }
+            if (shiftFilter) {
+                tasks = tasks.filter(t => getShiftFromTimestamp(t.timestamp).shift.includes(shiftFilter));
+            }
+
+            const skuFilter = document.getElementById('val-filter-sku-1') ? document.getElementById('val-filter-sku-1').value.toLowerCase() : '';
+            const assignedFilter = document.getElementById('val-filter-assigned-1') ? document.getElementById('val-filter-assigned-1').value.toLowerCase() : '';
+            const priorityFilter = document.getElementById('val-filter-priority-1') ? document.getElementById('val-filter-priority-1').value : '';
+
+            if (skuFilter) tasks = tasks.filter(t => (t.sku || '').toLowerCase().includes(skuFilter));
+            if (assignedFilter) tasks = tasks.filter(t => (t.validator || '').toLowerCase().includes(assignedFilter));
+            if (priorityFilter) tasks = tasks.filter(t => (t.priority || 'Normal') === priorityFilter);
+
+            // Initialize 24h buckets (6am to 6am)
+            const labels = [];
+            for (let i = 0; i < 24; i++) {
+                const h = (6 + i) % 24;
+                labels.push(`${h}:00`);
+            }
+
+            const receivedData = new Array(24).fill(0);
+            const resolvedData = new Array(24).fill(0);
+
+            tasks.forEach(t => {
+                // Received (Timestamp)
+                if (t.timestamp) {
+                    const d = new Date(t.timestamp);
+                    const h = d.getHours();
+                    let idx = h - 6;
+                    if (idx < 0) idx += 24;
+                    if (idx >= 0 && idx < 24) receivedData[idx]++;
+                }
+                
+                // Resolved (CompletedAt)
+                if (t.status === 'Completed' && t.completedAt) {
+                    const d = new Date(t.completedAt);
+                    const h = d.getHours();
+                    let idx = h - 6;
+                    if (idx < 0) idx += 24;
+                    if (idx >= 0 && idx < 24) resolvedData[idx]++;
+                }
+            });
+
+            if (hourlyProgressChart) {
+                hourlyProgressChart.destroy();
+            }
+
+            hourlyProgressChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Resolved', data: resolvedData, backgroundColor: '#2ecc71', order: 1 },
+                        { label: 'Received', data: receivedData, type: 'line', borderColor: '#3498db', backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, pointRadius: 1, order: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } }, title: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
         }
 
         function renderValAnalytics() {
@@ -7958,8 +8053,7 @@
 </html>
             
             
-            }
-    });
+ 
   </script>
 </body>
 </html>
