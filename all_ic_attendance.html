@@ -5020,30 +5020,75 @@
             // Hourly Output
             const ctxHourly = document.getElementById('val-hourly-chart');
             if(ctxHourly) {
-                const hourlyCounts = new Array(24).fill(0);
+                // Create 6am to 6am labels and data array
+                const hourlyLabels = [];
+                for (let i = 0; i < 24; i++) { const h = (6 + i) % 24; hourlyLabels.push(`${h}:00`); }
+                const resolvedCounts = new Array(24).fill(0);
+                const unresolvedCounts = new Array(24).fill(0);
+                const totalCounts = new Array(24).fill(0);
+
                 tasks.forEach(t => {
+                    // Total tasks created per hour
+                    if (t.timestamp) {
+                        const h = new Date(t.timestamp).getHours();
+                        let index = (h - 6 + 24) % 24;
+                        totalCounts[index]++;
+                    }
+
+                    // Resolved tasks per hour
                     if(t.status === 'Completed' && t.completedAt) {
                         const h = new Date(t.completedAt).getHours();
-                        hourlyCounts[h]++;
+                        let index = (h - 6 + 24) % 24;
+                        resolvedCounts[index]++;
+                    }
+
+                    // Unresolved tasks per hour
+                    if(t.status === 'Unresolved' && t.unresolvedAt) {
+                        const h = new Date(t.unresolvedAt).getHours();
+                        let index = (h - 6 + 24) % 24;
+                        unresolvedCounts[index]++;
                     }
                 });
                 
                 if(valHourlyChart) valHourlyChart.destroy();
                 valHourlyChart = new Chart(ctxHourly, {
-                    type: 'bar',
+                    type: 'bar', // This will be the default, but can be overridden per dataset
                     data: {
-                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                        datasets: [{
-                            label: 'Resolved Tasks',
-                            data: hourlyCounts,
-                            backgroundColor: '#9b59b6',
-                            borderRadius: 2
-                        }]
+                        labels: hourlyLabels,
+                        datasets: [
+                            {
+                                label: 'Total Tasks',
+                                data: totalCounts,
+                                type: 'line',
+                                borderColor: '#3498db',
+                                backgroundColor: 'transparent',
+                                tension: 0.1,
+                                order: 0 // Render line on top
+                            },
+                            {
+                                label: 'Resolved',
+                                data: resolvedCounts,
+                                backgroundColor: '#2ecc71',
+                                borderRadius: 2
+                            },
+                            {
+                                label: 'Unresolved',
+                                data: unresolvedCounts,
+                                backgroundColor: '#e74c3c',
+                                borderRadius: 2
+                            }
+                        ]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, title: { display: true, text: 'Hourly Output (Resolved)', font: { size: 10 } } },
-                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
+                        plugins: { 
+                            legend: { display: true, position: 'top', labels: { font: { size: 10 } } }, 
+                            title: { display: true, text: 'Hourly Task Analysis', font: { size: 10 } } 
+                        },
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { precision: 0 } }, 
+                            x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 45, autoSkip: false } } 
+                        }
                     }
                 });
             }
