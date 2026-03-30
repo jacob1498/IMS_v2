@@ -644,36 +644,55 @@
         });
     }
 
+    const STORAGE_MODULE_KEY_MAP = {
+        'ims_daily_attendance_v1': 'All IC Attendance',
+        'ims_daily_counters_v1': 'Daily Cycle Count',
+        'ims_daily_counters_attendance_v1': 'Daily Cycle Count (Att)',
+        'ims_cycle_count_v1': 'Cycle Count Data',
+        'ims_validation_tasks_v1': 'Validation Tasks',
+        'ims_counter_timestamps_v1': 'Timestamps',
+        'ims_ir_records_v1': 'Incident Reports',
+        'dms_docs_v1': 'Documents',
+        'ims_master_users_v1': 'User Master',
+        'ims_master_desc_v1': 'SKU Master',
+        'ims_ops_validators_v1': 'Ops Validators',
+        'ims_findings_master_v1': 'Findings Master',
+        'ims_rack_labels_v1': 'Rack Monitor Labels',
+        'ims_rack_status_v1': 'Rack Monitor Status',
+        'ims_kpi_overrides_v1': 'KPI Data',
+        'ims_daily_tasks_v1': 'Daily Task Tracker',
+        'ims_email_settings_v1': 'Settings',
+        'ims_theme': 'Settings',
+        'ims_status_reminder_time': 'Settings',
+        'dms_users_v1': 'Users',
+        'dms_notifications_v1': 'Notifications'
+    };
+
+    window.clearModuleData = function(label) {
+        const code = prompt(`Are you sure you want to clear all data for "${label}"? This action cannot be undone.\n\nEnter Supervisor Code to confirm:`);
+        if (code === null) return; // User cancelled
+        if (code !== '12345' && code !== 'admin') {
+            alert("Invalid Supervisor Code.");
+            return;
+        }
+            let count = 0;
+            Object.keys(localStorage).forEach(key => {
+                let moduleLabel = STORAGE_MODULE_KEY_MAP[key] || 'Other Data';
+                if (moduleLabel === label) {
+                    localStorage.removeItem(key);
+                    count++;
+                }
+            });
+            updateStorageInfo();
+            if(window.addNotification) window.addNotification(`Cleared ${label} data.`, 'success');
+            else alert(`Cleared ${label} data. ${count} keys removed.`);
+    };
+
     async function updateStorageInfo() {
         // 1. Calculate LocalStorage Usage (Standard 5MB Limit)
         const MAX_BYTES = 5 * 1024 * 1024; // 5MB
         let totalUsed = 0;
         const breakdown = {};
-        
-        // Map keys to readable names (Page/Module)
-        const keyMap = {
-            'ims_daily_attendance_v1': 'All IC Attendance',
-            'ims_daily_counters_v1': 'Daily Cycle Count',
-            'ims_daily_counters_attendance_v1': 'Daily Cycle Count (Att)',
-            'ims_cycle_count_v1': 'Cycle Count Data',
-            'ims_validation_tasks_v1': 'Validation Tasks',
-            'ims_counter_timestamps_v1': 'Timestamps',
-            'ims_ir_records_v1': 'Incident Reports',
-            'dms_docs_v1': 'Documents',
-            'ims_master_users_v1': 'User Master',
-            'ims_master_desc_v1': 'SKU Master',
-            'ims_ops_validators_v1': 'Ops Validators',
-            'ims_findings_master_v1': 'Findings Master',
-            'ims_rack_labels_v1': 'Rack Monitor Labels',
-            'ims_rack_status_v1': 'Rack Monitor Status',
-            'ims_kpi_overrides_v1': 'KPI Data',
-            'ims_daily_tasks_v1': 'Daily Task Tracker',
-            'ims_email_settings_v1': 'Settings',
-            'ims_theme': 'Settings',
-            'ims_status_reminder_time': 'Settings',
-            'dms_users_v1': 'Users',
-            'dms_notifications_v1': 'Notifications'
-        };
         
         for (let key in localStorage) {
             if (localStorage.hasOwnProperty(key)) {
@@ -682,7 +701,7 @@
                 const size = (localStorage[key].length + key.length);
                 totalUsed += size;
                 
-                let label = keyMap[key] || 'Other Data';
+                let label = STORAGE_MODULE_KEY_MAP[key] || 'Other Data';
                 
                 if (!breakdown[label]) breakdown[label] = 0;
                 breakdown[label] += size;
@@ -709,14 +728,14 @@
         if (breakdownContainer) {
             let html = '<h4 style="margin: 10px 0 5px 0; font-size: 13px; color: #555;">Usage Breakdown</h4>';
             html += '<table style="width:100%; font-size:11px; border-collapse:collapse;">';
-            html += '<tr style="background:#f5f5f5;"><th style="text-align:left; padding:4px; border-bottom:1px solid #ddd;">Module</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">Size (KB)</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">%</th></tr>';
+            html += '<tr style="background:#f5f5f5;"><th style="text-align:left; padding:4px; border-bottom:1px solid #ddd;">Module</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">Size (KB)</th><th style="text-align:right; padding:4px; border-bottom:1px solid #ddd;">%</th><th style="text-align:center; padding:4px; border-bottom:1px solid #ddd;">Action</th></tr>';
             
             const sorted = Object.entries(breakdown).sort((a,b) => b[1] - a[1]);
             
             sorted.forEach(([label, size]) => {
                 const kb = (size / 1024).toFixed(2);
                 const pct = totalUsed > 0 ? ((size / totalUsed) * 100).toFixed(1) : 0;
-                html += `<tr class="storage-row" data-label="${label}"><td style="padding:4px; border-bottom:1px solid #eee;">${label}</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${kb} KB</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${pct}%</td></tr>`;
+                html += `<tr class="storage-row" data-label="${label}"><td style="padding:4px; border-bottom:1px solid #eee;">${label}</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${kb} KB</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${pct}%</td><td style="text-align:center; padding:4px; border-bottom:1px solid #eee;"><button type="button" onclick="clearModuleData('${label}')" style="background:#e74c3c; color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Clear</button></td></tr>`;
             });
             html += '</table>';
             breakdownContainer.innerHTML = html;
