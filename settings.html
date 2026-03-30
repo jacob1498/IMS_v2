@@ -688,6 +688,45 @@
             else alert(`Cleared ${label} data. ${count} keys removed.`);
     };
 
+    window.exportModuleData = function(label) {
+        const wb = XLSX.utils.book_new();
+        let hasData = false;
+
+        Object.keys(localStorage).forEach(key => {
+            let moduleLabel = STORAGE_MODULE_KEY_MAP[key] || 'Other Data';
+            if (moduleLabel === label) {
+                let rawData = localStorage.getItem(key);
+                try {
+                    let parsed = JSON.parse(rawData);
+                    let ws;
+                    if (Array.isArray(parsed)) {
+                        ws = XLSX.utils.json_to_sheet(parsed);
+                    } else if (typeof parsed === 'object' && parsed !== null) {
+                        ws = XLSX.utils.json_to_sheet([parsed]);
+                    } else {
+                        ws = XLSX.utils.aoa_to_sheet([['Key', 'Value'], [key, rawData]]);
+                    }
+                    // Excel sheet name restrictions: max 31 chars, no special chars
+                    let sheetName = key.substring(0, 31).replace(/[\\/?*\[\]]/g, '_');
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    hasData = true;
+                } catch (e) {
+                    let ws = XLSX.utils.aoa_to_sheet([['Key', 'Value'], [key, rawData]]);
+                    let sheetName = key.substring(0, 31).replace(/[\\/?*\[\]]/g, '_');
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    hasData = true;
+                }
+            }
+        });
+
+        if (hasData) {
+            XLSX.writeFile(wb, `${label.replace(/\s+/g, '_')}_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+            if(window.addNotification) window.addNotification(`Exported ${label} data to Excel.`, 'success');
+        } else {
+            alert('No data found for this module.');
+        }
+    };
+
     async function updateStorageInfo() {
         // 1. Calculate LocalStorage Usage (Standard 5MB Limit)
         const MAX_BYTES = 5 * 1024 * 1024; // 5MB
@@ -735,7 +774,10 @@
             sorted.forEach(([label, size]) => {
                 const kb = (size / 1024).toFixed(2);
                 const pct = totalUsed > 0 ? ((size / totalUsed) * 100).toFixed(1) : 0;
-                html += `<tr class="storage-row" data-label="${label}"><td style="padding:4px; border-bottom:1px solid #eee;">${label}</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${kb} KB</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${pct}%</td><td style="text-align:center; padding:4px; border-bottom:1px solid #eee;"><button type="button" onclick="clearModuleData('${label}')" style="background:#e74c3c; color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Clear</button></td></tr>`;
+                html += `<tr class="storage-row" data-label="${label}"><td style="padding:4px; border-bottom:1px solid #eee;">${label}</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${kb} KB</td><td style="text-align:right; padding:4px; border-bottom:1px solid #eee;">${pct}%</td><td style="text-align:center; padding:4px; border-bottom:1px solid #eee; display:flex; gap:4px; justify-content:center;">
+                    <button type="button" onclick="exportModuleData('${label}')" style="background:#27ae60; color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Extract</button>
+                    <button type="button" onclick="clearModuleData('${label}')" style="background:#e74c3c; color:white; border:none; border-radius:3px; padding:2px 6px; font-size:9px; cursor:pointer;">Clear</button>
+                </td></tr>`;
             });
             html += '</table>';
             breakdownContainer.innerHTML = html;
