@@ -1942,6 +1942,17 @@
             <!-- Summary Cards -->
             <div class="dashboard-stats-grid" id="quick-report-stats" style="margin-bottom:20px; grid-template-columns: repeat(4, 1fr);"></div>
             
+            <!-- Progress Completion Bar -->
+            <div id="quick-report-progress-container" style="margin-bottom: 25px; padding: 0 10px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; font-weight:bold; color:var(--muted);">
+                    <span>Overall Completion Progress</span>
+                    <span id="quick-report-progress-text">0/0 (0%)</span>
+                </div>
+                <div style="height:12px; background:#f0f0f0; border-radius:6px; overflow:hidden; border:1px solid #eee;">
+                    <div id="quick-report-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg, #2ecc71, #27ae60); transition:width 0.5s ease;"></div>
+                </div>
+            </div>
+            
             <!-- Charts Section -->
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                 <div class="chart-card" style="min-height:300px;">
@@ -7985,6 +7996,14 @@
                         <div class="stat-card" style="padding:15px; border-left:4px solid #f1c40f;"><div class="stat-info"><div class="stat-value">${rate}%</div><div class="stat-label">Completion Rate</div></div></div>
                     `;
 
+                    // Update Progress Bar
+                    const progressText = document.getElementById('quick-report-progress-text');
+                    const progressBar = document.getElementById('quick-report-progress-bar');
+                    if(progressText && progressBar) {
+                        progressText.textContent = `${resolved} Resolved / ${total} Total (${rate}%)`;
+                        progressBar.style.width = `${rate}%`;
+                    }
+
                     // Findings Aggregation
                     const findingsCounts = {};
                     let findingsTotal = 0;
@@ -8070,6 +8089,10 @@
                     printWindow.document.write('<h3>Key Metrics</h3>');
                     printWindow.document.write(stats.outerHTML);
 
+                    // Add Progress Info
+                    const progressInfo = document.getElementById('quick-report-progress-text').textContent;
+                    printWindow.document.write(`<p style="margin: 10px 0; font-weight: bold; color: #2752a7;">Completion Progress: ${progressInfo}</p>`);
+
                     // Add Table
                     const table = document.getElementById('quick-report-table').cloneNode(true);
                     printWindow.document.write('<h3>Findings Breakdown</h3>');
@@ -8081,6 +8104,74 @@
                     printWindow.document.close();
                 });
             }
+
+            // Automated Shift Report Email Trigger
+            function sendAutomatedShiftReport() {
+                const tasks = getValidationTasks();
+                const now = new Date();
+                // Look back 1 minute to identify the shift that just ended (at 06:00, 14:00, 22:00)
+                const checkTime = new Date(now.getTime() - 60000);
+                const info = getShiftFromTimestamp(checkTime.toISOString());
+                const dateStr = info.date;
+                const shiftFilter = info.shift;
+
+                // Filter tasks for the shift that just ended
+                const filtered = tasks.filter(t => {
+                    const tInfo = getShiftFromTimestamp(t.timestamp);
+                    return tInfo.date === dateStr && tInfo.shift === shiftFilter;
+                });
+
+                if (filtered.length === 0) return;
+
+                const total = filtered.length;
+                const resolved = filtered.filter(t => t.status === 'Completed').length;
+                const unresolved = filtered.filter(t => t.status === 'Unresolved').length;
+                const rate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+
+                const settings = JSON.parse(localStorage.getItem('ims_email_settings_v1') || '{}');
+                const recipients = settings.recipients || '';
+                
+                const subject = `Shift End Validation Summary: ${dateStr} (${shiftFilter})`;
+                let body = `Automated Validation Summary Report\n`;
+                body += `Date: ${dateStr}\n`;
+                body += `Shift: ${shiftFilter}\n\n`;
+                body += `Total Tasks: ${total}\n`;
+                body += `Resolved: ${resolved}\n`;
+                body += `Unresolved: ${unresolved}\n`;
+                body += `Completion Rate: ${rate}%\n\n`;
+                
+                body += `Findings Breakdown:\n`;
+                const findingsCounts = {};
+                filtered.forEach(t => {
+                    if (t.findings) {
+                        const list = t.findings.split(';').map(s => s.trim()).filter(s => s);
+                        list.forEach(f => { findingsCounts[f] = (findingsCounts[f] || 0) + 1; });
+                    }
+                });
+                
+                Object.entries(findingsCounts).sort((a,b) => b[1] - a[1]).forEach(([f, count]) => {
+                    body += `- ${f}: ${count}\n`;
+                });
+
+                body += `\nGenerated by IAAF Monitoring System.`;
+
+                window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+
+            setInterval(() => {
+                const now = new Date();
+                const hhmm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                const shiftEnds = ['06:00', '14:00', '22:00'];
+                
+                if (shiftEnds.includes(hhmm)) {
+                    const lastSentKey = `ims_last_auto_val_report_${hhmm}`;
+                    const todayStr = now.toISOString().split('T')[0];
+                    if (localStorage.getItem(lastSentKey) !== todayStr) {
+                        sendAutomatedShiftReport();
+                        localStorage.setItem(lastSentKey, todayStr);
+                    }
+                }
+            }, 30000); // Check every 30 seconds
 
     });
   </script>
