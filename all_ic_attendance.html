@@ -7986,7 +7986,7 @@
                     const resolved = filtered.filter(t => t.status === 'Completed').length;
                     const unresolved = filtered.filter(t => t.status === 'Unresolved').length;
                     const pending = total - (resolved + unresolved);
-                    const rate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+                    const rate = total > 0 ? Math.round(((resolved + unresolved) / total) * 100) : 0;
 
                     const statsContainer = document.getElementById('quick-report-stats');
                     statsContainer.innerHTML = `
@@ -8000,7 +8000,7 @@
                     const progressText = document.getElementById('quick-report-progress-text');
                     const progressBar = document.getElementById('quick-report-progress-bar');
                     if(progressText && progressBar) {
-                        progressText.textContent = `${resolved} Resolved / ${total} Total (${rate}%)`;
+                        progressText.textContent = `${resolved + unresolved} Processed / ${total} Total (${rate}%)`;
                         progressBar.style.width = `${rate}%`;
                     }
 
@@ -8126,7 +8126,7 @@
                 const total = filtered.length;
                 const resolved = filtered.filter(t => t.status === 'Completed').length;
                 const unresolved = filtered.filter(t => t.status === 'Unresolved').length;
-                const rate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+                const rate = total > 0 ? Math.round(((resolved + unresolved) / total) * 100) : 0;
 
                 const settings = JSON.parse(localStorage.getItem('ims_email_settings_v1') || '{}');
                 const recipients = settings.recipients || '';
