@@ -1370,6 +1370,8 @@
                                     <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                     <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                     <th style="position:sticky; top:0; z-index:1;">Description</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Order #</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Location</th>
                                     <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                     <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                     <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1402,6 +1404,8 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1435,6 +1439,8 @@
                                     <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                     <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                     <th style="position:sticky; top:0; z-index:1;">Description</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Order #</th>
+                                    <th style="position:sticky; top:0; z-index:1;">Location</th>
                                     <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                     <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                     <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1470,6 +1476,8 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1504,6 +1512,8 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
+                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1658,6 +1668,16 @@
             <button class="icon-btn close-widget-btn" style="padding:2px; width:20px; height:20px;">&times;</button>
         </div>
         <div style="padding:10px;">
+             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div>
+                    <label style="font-size:10px; font-weight:bold;">Order # (Opt)</label>
+                    <input type="text" id="assign-order-num" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:11px;">
+                </div>
+                <div>
+                    <label style="font-size:10px; font-weight:bold;">Location (Opt)</label>
+                    <input type="text" id="assign-location" style="width:100%; padding:4px; border:1px solid #ccc; border-radius:4px; font-size:11px;">
+                </div>
+            </div>
              <div style="display:grid; grid-template-columns: 1fr 0.6fr; gap:8px; align-items:end; margin-bottom:8px;">
                 <div>
                     <label style="font-size:10px; font-weight:bold;">SKU Code</label>
@@ -3700,6 +3720,8 @@
             validatorTasks.forEach(t => {
                 tasksHtml += `
                     <tr>
+                        <td>${t.orderNum || ''}</td>
+                        <td>${t.location || ''}</td>
                         <td>${t.sku}</td>
                         <td>${t.desc || ''}</td>
                         <td>${t.qty}</td>
@@ -3757,7 +3779,7 @@
                     <h3>Task Details</h3>
                     <table class="tasks-table">
                         <thead>
-                            <tr><th>SKU</th><th>Description</th><th>Qty</th><th>Reason</th><th>Status</th><th>Resolved Qty</th><th>Time</th></tr>
+                            <tr><th>Order #</th><th>Location</th><th>SKU</th><th>Description</th><th>Qty</th><th>Reason</th><th>Status</th><th>Resolved Qty</th><th>Time</th></tr>
                         </thead>
                         <tbody>
                             ${tasksHtml || '<tr><td colspan="7" style="text-align:center">No tasks found</td></tr>'}
@@ -3810,6 +3832,8 @@
             validatorTasks.forEach(t => {
                 tasksHtml += `
                     <tr>
+                        <td style="border:1px solid #000; padding:6px;">${t.orderNum || ''}</td>
+                        <td style="border:1px solid #000; padding:6px;">${t.location || ''}</td>
                         <td style="border:1px solid #000; padding:6px;">${t.sku}</td>
                         <td style="border:1px solid #000; padding:6px;">${t.desc || ''}</td>
                         <td style="border:1px solid #000; padding:6px;">${t.qty}</td>
@@ -3851,7 +3875,7 @@
                     <h3>Task Details</h3>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
                         <thead>
-                            <tr><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">SKU</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Description</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Qty</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Reason</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Status</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Resolved Qty</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Time</th></tr>
+                            <tr><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Order #</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Location</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">SKU</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Description</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Qty</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Reason</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Status</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Resolved Qty</th><th style="border:1px solid #000; padding:6px; background-color:#f0f0f0;">Time</th></tr>
                         </thead>
                         <tbody>
                             ${tasksHtml || '<tr><td colspan="7" style="text-align:center; border:1px solid #000; padding:6px;">No tasks found</td></tr>'}
@@ -4099,27 +4123,23 @@
             if (type === 'total') {
                 title.textContent = 'Total Tasks';
                 filteredTasks = tasks;
-                columns = ['Date', 'SKU', 'Description', 'Status', 'Validator', 'Action'];
+                columns = ['Date', 'SKU', 'Description', 'Order #', 'Location', 'Status', 'Validator', 'Action'];
             } else if (type === 'pending') {
                 title.textContent = 'Pending Tasks';
                 filteredTasks = tasks.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved' && (!t.validator || t.validator === 'Unassigned'));
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Assign To', 'Action'];
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Assign To', 'Duration', 'Action'];
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Order #', 'Location', 'Qty', 'Reason', 'Ops Validator', 'Assign To', 'Duration', 'Action'];
             } else if (type === 'assigned') {
                 title.textContent = 'Assigned Tasks';
                 filteredTasks = tasks.filter(t => t.status !== 'Completed' && t.status !== 'Unresolved' && t.validator && t.validator !== 'Unassigned');
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Validator', 'Action'];
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'Validator', 'Duration', 'Action'];
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Order #', 'Location', 'Qty', 'Reason', 'Ops Validator', 'Validator', 'Duration', 'Action'];
             } else if (type === 'resolved') {
                 title.textContent = 'Resolved Tasks';
                 filteredTasks = tasks.filter(t => t.status === 'Completed');
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Resolved Qty', 'Findings', 'Action'];
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Resolved Qty', 'Findings', 'Duration', 'Action'];
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Order #', 'Location', 'Qty', 'Reason', 'Validator', 'Resolved Qty', 'Findings', 'Duration', 'Action'];
             } else if (type === 'unresolved') {
                 title.textContent = 'Unresolved Tasks';
                 filteredTasks = tasks.filter(t => t.status === 'Unresolved');
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Unresolved Time', 'Action'];
-                columns = ['Date', 'Priority', 'SKU', 'Description', 'Qty', 'Reason', 'Validator', 'Unresolved Time', 'Duration', 'Action'];
+                columns = ['Date', 'Priority', 'SKU', 'Description', 'Order #', 'Location', 'Qty', 'Reason', 'Validator', 'Unresolved Time', 'Duration', 'Action'];
             }
             
             thead.innerHTML = '<tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
@@ -4204,19 +4224,19 @@
                 }
 
                 if (type === 'total') {
-                    tr.innerHTML = `<td>${dateStr}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.status}</td><td>${t.validator||'-'}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.status}</td><td>${t.validator||'-'}</td><td>${actionHtml}</td>`;
                 } else if (type === 'pending' || type === 'assigned') {
                     const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px;">`;
                     const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
                     const opsInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
                     const valInput = createValidatorSelect(t.validator, t.id);
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${opsInput}</td><td>${valInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${opsInput}</td><td>${valInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 } else if (type === 'resolved') {
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason}</td><td>${t.validator}</td><td>${t.resolvedQty||'-'}</td><td>${t.findings||'-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason}</td><td>${t.validator}</td><td>${t.resolvedQty||'-'}</td><td>${t.findings||'-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 } else if (type === 'unresolved') {
                     const valInput = createValidatorSelect(t.validator, t.id);
                     const unresTime = t.unresolvedAt ? new Date(t.unresolvedAt).toLocaleString() : '-';
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason}</td><td>${valInput}</td><td>${unresTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason}</td><td>${valInput}</td><td>${unresTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 }
                 tbody.appendChild(tr);
             });
@@ -4277,6 +4297,8 @@
                 tasks = tasks.filter(t => 
                     (t.sku || '').toLowerCase().includes(valGlobalSearchTerm) ||
                     (t.desc || '').toLowerCase().includes(valGlobalSearchTerm) ||
+                    (t.orderNum || '').toLowerCase().includes(valGlobalSearchTerm) ||
+                    (t.location || '').toLowerCase().includes(valGlobalSearchTerm) ||
                     (t.validator || '').toLowerCase().includes(valGlobalSearchTerm)
                 );
             }
@@ -4499,7 +4521,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     pendingTasksTbody.appendChild(tr);
                 });
             }
@@ -4569,7 +4591,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     assignedTasksTbody.appendChild(tr);
                 });
             }
@@ -4630,7 +4652,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox resolved-cb" value="${t.id}"></td><td>${resolvedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox resolved-cb" value="${t.id}"></td><td>${resolvedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     resolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -4699,7 +4721,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     unresolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -4754,7 +4776,7 @@
                     const reassignedTo = t.reassignedTo || '-';
 
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox history-cb" value="${t.id}"></td><td>${dateStr}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${t.validator}</td><td>${displayStatus}</td><td>${displaySubStatus}</td><td>${reassignedTo}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></td>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox history-cb" value="${t.id}"></td><td>${dateStr}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${t.validator}</td><td>${displayStatus}</td><td>${displaySubStatus}</td><td>${reassignedTo}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></td>`;
                     historyTasksTbody.appendChild(tr);
                 });
             }
@@ -5970,14 +5992,14 @@
             if (dataToExport.length === 0) { alert('No data to export'); return; }
             
            
-            const headers = ['Date', 'SKU', 'Description', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Completed At', 'Findings'];
+            const headers = ['Date', 'SKU', 'Description', 'Order #', 'Location', 'Qty', 'Reason', 'Ops Validator', 'IC Validator', 'Status', 'Completed At', 'Findings'];
             const csv = [headers.join(',')];
             
             dataToExport.forEach(t => {
                 const date = new Date(t.timestamp).toLocaleString().replace(',', '');
                 const completedAt = t.completedAt ? new Date(t.completedAt).toLocaleString().replace(',', '') : '';
                 const row = [
-                    `"${date}"`, `"${t.sku || ''}"`, `"${(t.desc || '').replace(/"/g, '""')}"`,
+                    `"${date}"`, `"${t.sku || ''}"`, `"${(t.desc || '').replace(/"/g, '""')}"`, `"${t.orderNum || ''}"`, `"${t.location || ''}"`,
                     `"${t.qty || ''}"`, `"${(t.reason || '').replace(/"/g, '""')}"`,
                     `"${t.opsValidator || ''}"`, `"${t.validator || ''}"`, `"${t.status || ''}"`, `"${completedAt}"`,
                     `"${(t.findings || '').replace(/"/g, '""')}"`
@@ -6232,8 +6254,8 @@
                 if(valActionsModal) valActionsModal.classList.add('hidden');
                 window.showLoading && window.showLoading();
                 setTimeout(() => {
-                    const headers = ['SKU', 'Qty', 'Reason', 'Priority', 'Ops Validator', 'IC Validator'];
-                    const sample = ['10000001', '10', 'Variance Check', 'Normal', 'Jane Ops', 'John Doe'];
+                    const headers = ['Order #', 'Location', 'SKU', 'Qty', 'Reason', 'Priority', 'Ops Validator', 'IC Validator'];
+                    const sample = ['OR123', 'A-01-01', '10000001', '10', 'Variance Check', 'Normal', 'Jane Ops', 'John Doe'];
                     const csvContent = headers.join(',') + '\n' + sample.join(',');
                     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                     const url = URL.createObjectURL(blob);
@@ -6273,6 +6295,8 @@
                         if (valIdx === -1) valIdx = headers.indexOf('ic validator');
                         const prioIdx = headers.indexOf('priority');
                         const opsValIdx = headers.indexOf('ops validator');
+                        const orderIdx = headers.indexOf('order #');
+                        const locIdx = headers.indexOf('location');
                         
                         if(skuIdx === -1 || qtyIdx === -1) {
                             showToast('CSV must contain "SKU" and "Qty" columns.', 'error');
@@ -6311,6 +6335,8 @@
                             const validator = (valIdx > -1) ? cols[valIdx] : '';
                             const priority = (prioIdx > -1) ? cols[prioIdx] : 'Normal';
                             const opsValidator = (opsValIdx > -1) ? cols[opsValIdx] : '';
+                            const orderNum = (orderIdx > -1) ? cols[orderIdx] : '';
+                            const location = (locIdx > -1) ? cols[locIdx] : '';
                             
                             if(sku && qty) {
                                 // Check for duplicate in current shift
@@ -6327,6 +6353,8 @@
                                     sku: sku,
                                     desc: desc,
                                     qty: qty,
+                                    orderNum: orderNum,
+                                    location: location,
                                     reason: reason,
                                     priority: priority || 'Normal',
                                     validator: validator || 'Unassigned',
@@ -6661,6 +6689,8 @@
             btnAssignTask.addEventListener('click', () => {
                 const sku = assignSku.value.trim();
                 const qty = assignQty.value.trim();
+                const orderNum = document.getElementById('assign-order-num').value.trim();
+                const location = document.getElementById('assign-location').value.trim();
                 const reason = assignReason.value.trim();
                 const priority = assignPriority ? assignPriority.value : 'Normal';
                 const opsVal = assignOpsValidator ? assignOpsValidator.value : '';
@@ -6701,6 +6731,8 @@
                     sku: sku,
                     desc: assignDesc.value,
                     qty: qty,
+                    orderNum: orderNum,
+                    location: location,
                     reason: reason,
                     priority: priority,
                     expiryDate: assignExpiry ? assignExpiry.value : '',
@@ -6715,6 +6747,7 @@
                 
                 if(assignPriority) assignPriority.value = 'Normal';
                 assignSku.value = ''; assignDesc.value = ''; assignQty.value = ''; assignReason.value = ''; assignValidator.value = '';
+                document.getElementById('assign-order-num').value = ''; document.getElementById('assign-location').value = '';
                 if(assignOpsValidator) assignOpsValidator.value = '';
                 if(assignExpiry) assignExpiry.value = '';
                 if(document.getElementById('assign-expiry-container')) document.getElementById('assign-expiry-container').style.display = 'none';
@@ -7299,6 +7332,8 @@
                 const matches = tasks.filter(t => 
                     (t.sku || '').toLowerCase().includes(query) ||
                     (t.desc || '').toLowerCase().includes(query) ||
+                    (t.orderNum || '').toLowerCase().includes(query) ||
+                    (t.location || '').toLowerCase().includes(query) ||
                     (t.validator || '').toLowerCase().includes(query)
                 ).slice(0, 10);
 
@@ -7307,7 +7342,11 @@
                     matches.forEach(t => {
                         const div = document.createElement('div');
                         div.className = 'search-preview-item';
-                        div.innerHTML = `<div style="font-weight:bold; font-size:12px;">${t.sku}</div><div style="color:#666; font-size:11px;">${t.desc || 'No Desc'}</div><div style="font-size:10px; color:#999;">${t.validator || 'Unassigned'} • ${t.status}</div>`;
+                        let subInfo = [];
+                        if(t.orderNum) subInfo.push('Ord: ' + t.orderNum);
+                        if(t.location) subInfo.push('Loc: ' + t.location);
+                        let subInfoStr = subInfo.length > 0 ? `<div style="font-size:10px; color:#666;">${subInfo.join(' • ')}</div>` : '';
+                        div.innerHTML = `<div style="font-weight:bold; font-size:12px;">${t.sku}</div><div style="color:#666; font-size:11px;">${t.desc || 'No Desc'}</div>${subInfoStr}<div style="font-size:10px; color:#999;">${t.validator || 'Unassigned'} • ${t.status}</div>`;
                         div.addEventListener('click', () => {
                             valGlobalSearchInput.value = t.sku;
                             valSearchPreview.style.display = 'none';
@@ -7921,7 +7960,8 @@
 
                             return {
                                 'Date': new Date(t.timestamp).toLocaleString(),
-                                'SKU': t.sku, 'Description': t.desc, 'Qty': t.qty, 'Reason': t.reason,
+                                'SKU': t.sku, 'Description': t.desc, 'Order #': t.orderNum || '', 'Location': t.location || '',
+                                'Qty': t.qty, 'Reason': t.reason,
                                 'Priority': t.priority || 'Normal', 'Ops Validator': t.opsValidator || '', 'IC Validator': t.validator || '',
                                 'Status': t.status,
                                 'Completed At': t.completedAt ? (() => {
