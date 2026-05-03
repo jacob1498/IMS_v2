@@ -1370,8 +1370,6 @@
                                     <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                     <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                     <th style="position:sticky; top:0; z-index:1;">Description</th>
-                                    <th style="position:sticky; top:0; z-index:1;">Order #</th>
-                                    <th style="position:sticky; top:0; z-index:1;">Location</th>
                                     <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                     <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                     <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1404,8 +1402,6 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1439,8 +1435,6 @@
                                     <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                     <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                     <th style="position:sticky; top:0; z-index:1;">Description</th>
-                                    <th style="position:sticky; top:0; z-index:1;">Order #</th>
-                                    <th style="position:sticky; top:0; z-index:1;">Location</th>
                                     <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                     <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                     <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1476,8 +1470,6 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -1512,8 +1504,6 @@
                                         <th style="position:sticky; top:0; z-index:1;">Priority</th>
                                         <th style="position:sticky; top:0; z-index:1;">SKU</th>
                                         <th style="position:sticky; top:0; z-index:1;">Description</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Order #</th>
-                                        <th style="position:sticky; top:0; z-index:1;">Location</th>
                                         <th style="position:sticky; top:0; z-index:1;">Qty</th>
                                         <th style="position:sticky; top:0; z-index:1;">Reason</th>
                                         <th style="position:sticky; top:0; z-index:1;">Expiry Date</th>
@@ -4194,6 +4184,9 @@
                 const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
                 let actionHtml = '';
                 
+                const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+
                 if (t.status === 'Completed') {
                     actionHtml = `<button class="icon-btn reopen-task-btn" data-id="${t.id}" title="Reopen" style="color:#f39c12;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg></button><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button>`;
                 } else if (t.status === 'Unresolved') {
@@ -4224,19 +4217,19 @@
                 }
 
                 if (type === 'total') {
-                    tr.innerHTML = `<td>${dateStr}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.status}</td><td>${t.validator||'-'}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${t.status}</td><td>${t.validator||'-'}</td><td>${actionHtml}</td>`;
                 } else if (type === 'pending' || type === 'assigned') {
                     const qtyInput = `<input type="number" class="task-qty-input" data-id="${t.id}" value="${t.qty}" style="width:50px; padding:2px; border:1px solid #e0e0e0; border-radius:4px; font-size:11px;">`;
                     const reasonInput = createSelect(reasonsList, t.reason, 'task-reason-input', t.id);
                     const opsInput = createSelect(opsValidatorsList, t.opsValidator, 'task-ops-validator-input', t.id);
                     const valInput = createValidatorSelect(t.validator, t.id);
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${opsInput}</td><td>${valInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${opsInput}</td><td>${valInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 } else if (type === 'resolved') {
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason}</td><td>${t.validator}</td><td>${t.resolvedQty||'-'}</td><td>${t.findings||'-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${t.qty}</td><td>${t.reason}</td><td>${t.validator}</td><td>${t.resolvedQty||'-'}</td><td>${t.findings||'-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 } else if (type === 'unresolved') {
                     const valInput = createValidatorSelect(t.validator, t.id);
                     const unresTime = t.unresolvedAt ? new Date(t.unresolvedAt).toLocaleString() : '-';
-                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason}</td><td>${valInput}</td><td>${unresTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    tr.innerHTML = `<td>${dateStr}</td><td>${t.priority}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${t.qty}</td><td>${t.reason}</td><td>${valInput}</td><td>${unresTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                 }
                 tbody.appendChild(tr);
             });
@@ -4521,7 +4514,9 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                        const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                        const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox pending-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     pendingTasksTbody.appendChild(tr);
                 });
             }
@@ -4591,7 +4586,9 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                        const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                        const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox assigned-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     assignedTasksTbody.appendChild(tr);
                 });
             }
@@ -4652,7 +4649,9 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox resolved-cb" value="${t.id}"></td><td>${resolvedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                    const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox resolved-cb" value="${t.id}"></td><td>${resolvedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${validatorInput}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     resolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -4721,7 +4720,9 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                         </button>`;
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                        tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
+                    const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                    const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox unresolved-cb" value="${t.id}"></td><td>${assignedTime}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${qtyInput}</td><td>${reasonInput}</td><td>${expiryStr}</td><td>${opsValidatorInput}</td><td>${validatorInput}</td><td>${unresolvedTime}</td><td>${durationStr}</td><td>${actionHtml}</td>`;
                     unresolvedTasksTbody.appendChild(tr);
                 });
             }
@@ -4776,7 +4777,9 @@
                     const reassignedTo = t.reassignedTo || '-';
 
                     const skuLink = `<a href="https://medias.watsons.com.ph/publishing/WTCPH-${t.sku}-front-zoom.jpg?version=1721927559" target="_blank" style="color:#2752a7; text-decoration:underline;" onclick="event.stopPropagation()">${t.sku}</a>`;
-                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox history-cb" value="${t.id}"></td><td>${dateStr}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${t.orderNum || '-'}</td><td>${t.location || '-'}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${t.validator}</td><td>${displayStatus}</td><td>${displaySubStatus}</td><td>${reassignedTo}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></td>`;
+                    const orderNumHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'orderNum')" class="editable-field">${t.orderNum || '-'}</span>`;
+                    const locationHtml = `<span contenteditable="true" onblur="window.updateTaskField(this, '${t.id}', 'location')" class="editable-field">${t.location || '-'}</span>`;
+                    tr.innerHTML = `<td><input type="checkbox" class="val-row-checkbox history-cb" value="${t.id}"></td><td>${dateStr}</td><td>${prioHtml}</td><td>${skuLink}</td><td>${t.desc}</td><td>${orderNumHtml}</td><td>${locationHtml}</td><td>${t.qty}</td><td>${t.reason || '-'}</td><td>${expiryStr}</td><td>${t.opsValidator || '-'}</td><td>${t.validator}</td><td>${displayStatus}</td><td>${displaySubStatus}</td><td>${reassignedTo}</td><td>${t.findings || '-'}</td><td>${t.resolvedQty || '-'}</td><td>${durationStr}</td><td><button class="icon-btn delete-task-btn" data-id="${t.id}" title="Delete" style="color:#d9534f;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></button></td>`;
                     historyTasksTbody.appendChild(tr);
                 });
             }
